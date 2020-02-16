@@ -1,0 +1,50 @@
+type IndexResult {
+    ok: Boolean!
+}
+
+type Mutation {
+    index(path: String!): IndexResult!
+    open(path: String!): Boolean
+}
+
+type ReadFileResponse {
+    data: String
+}
+
+type Query {
+    numCpus: Int!
+    stdin: [String!]!
+    progress: [IndexingProgressEvent!]!
+}
+
+#
+# Indexing Subscription
+#
+
+type IndexingProgressEvent {
+    totalBytes: Int!
+    bytesRead: Int!
+    path: String!
+}
+
+type IndexingErrorEvent {
+    path: String!
+    description: String!
+}
+
+type IndexingCloseEvent {
+    path: String!
+}
+
+union IndexingEvent = IndexingProgressEvent | IndexingCloseEvent | IndexingErrorEvent
+
+#
+# Subscription
+#
+
+type Subscription {
+    stdin: String!
+    fileOpen: [String!]!
+    indexing: IndexingEvent!
+
+}
