@@ -4,22 +4,20 @@
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL query operation: StdInQuery
+// GraphQL subscription operation: StdInSubscription
 // ====================================================
 
-export interface StdInQuery_stdin {
+export interface StdInSubscription_stdin {
   __typename: "Line";
   rowid: number;
   timestamp: any;
   text: string;
 }
 
-export interface StdInQuery {
-  stdin: StdInQuery_stdin[];
+export interface StdInSubscription {
+  stdin: StdInSubscription_stdin;
 }
 
-export interface StdInQueryVariables {
-  limit: number;
-  offset: number;
+export interface StdInSubscriptionVariables {
   filter?: string | null;
 }

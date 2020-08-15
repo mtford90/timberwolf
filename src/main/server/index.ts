@@ -11,15 +11,14 @@ import { initPublishers } from "./publishers";
 import { initResolvers } from "./resolvers";
 import { Database } from "./database";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default function configureServer(_opts: { database: Database }) {
-  const publishers = initPublishers();
+export default function configureServer({ database }: { database: Database }) {
+  const publishers = initPublishers(database);
 
   values(publishers).forEach((pub) => {
     pub.init();
   });
 
-  const resolvers = initResolvers({ publishers });
+  const resolvers = initResolvers({ publishers, database });
 
   const link = createSchemaLink({
     schema: makeExecutableSchema({

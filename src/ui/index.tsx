@@ -5,7 +5,7 @@ import * as ReactDOM from "react-dom";
 import { createGlobalStyle, ThemeProvider } from "styled-components";
 import { Normalize } from "styled-normalize";
 import { Provider, defaultTheme } from "@adobe/react-spectrum";
-import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
+import { ApolloProvider } from "@apollo/client";
 import { useMemo } from "react";
 import * as theme from "./theme";
 import Root from "./Root";
@@ -16,8 +16,8 @@ import "@spectrum-css/vars/dist/spectrum-medium.css";
 import "@spectrum-css/vars/dist/spectrum-light.css";
 import "@spectrum-css/tabs/dist/index-vars.css";
 import "@spectrum-css/button/dist/index-vars.css";
-import { GqlIpcLink } from "../common/gql-transport/ipc-link";
 import { initStores, StoresProvider } from "./stores";
+import { useInitElectronApolloClient } from "../common/gql-transport/apollo";
 
 const GlobalStyle = createGlobalStyle`
   code {
@@ -39,12 +39,7 @@ const GlobalStyle = createGlobalStyle`
 `;
 
 function App() {
-  const apolloClient = useMemo(() => {
-    return new ApolloClient({
-      cache: new InMemoryCache(),
-      link: new GqlIpcLink(),
-    });
-  }, []);
+  const apolloClient = useInitElectronApolloClient();
 
   const stores = useMemo(() => initStores(apolloClient), [apolloClient]);
 

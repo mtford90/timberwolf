@@ -1,4 +1,4 @@
-import { GqlIpcDispatcher } from "../src/common/gql-transport/ipc-dispatcher";
+import { GqlIpcDispatcher } from "../src/common/gql-transport/dispatcher";
 
 declare global {
   interface Window {

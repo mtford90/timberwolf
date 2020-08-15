@@ -2,12 +2,13 @@ import PromiseWorker from "promise-worker";
 import genericPool, { Pool } from "generic-pool-browser";
 import { getRows } from "./parse";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-
-export default class LogWorker {
+/**
+ * Main thread interface to the worker responsible for parsing logs
+ */
+export default class MainThreadWorkerInterface {
   private pool: Pool<Worker>;
 
-  private static globalLogWorker: LogWorker;
+  private static globalLogWorker: MainThreadWorkerInterface;
 
   constructor(numCpus: number) {
     this.pool = genericPool.createPool(
@@ -24,12 +25,14 @@ export default class LogWorker {
     );
   }
 
-  public static async getLogWorker(numCpus: number): Promise<LogWorker> {
-    if (LogWorker.globalLogWorker) {
-      return LogWorker.globalLogWorker;
+  public static async workerInterface(
+    numCpus: number
+  ): Promise<MainThreadWorkerInterface> {
+    if (MainThreadWorkerInterface.globalLogWorker) {
+      return MainThreadWorkerInterface.globalLogWorker;
     }
-    const logWorker = new LogWorker(numCpus);
-    LogWorker.globalLogWorker = logWorker;
+    const logWorker = new MainThreadWorkerInterface(numCpus);
+    MainThreadWorkerInterface.globalLogWorker = logWorker;
     return logWorker;
   }
 

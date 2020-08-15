@@ -1,6 +1,7 @@
-import { GraphQLResolveInfo } from 'graphql';
+import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type RequireFields<T, K extends keyof T> = { [X in Exclude<keyof T, K>]?: T[X] } & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -8,17 +9,42 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
+  DateTime: any;
+  Date: any;
+  Time: any;
+};
+
+
+
+
+export type Line = {
+  __typename: 'Line';
+  text: Scalars['String'];
+  rowid: Scalars['Int'];
+  timestamp: Scalars['DateTime'];
 };
 
 export type Query = {
   __typename: 'Query';
   numCpus: Scalars['Int'];
-  stdin: Array<Scalars['String']>;
+  stdin: Array<Line>;
+};
+
+
+export type QueryStdinArgs = {
+  limit: Scalars['Int'];
+  offset: Scalars['Int'];
+  filter?: Maybe<Scalars['String']>;
 };
 
 export type Subscription = {
   __typename: 'Subscription';
-  stdin: Scalars['String'];
+  stdin: Line;
+};
+
+
+export type SubscriptionStdinArgs = {
+  filter?: Maybe<Scalars['String']>;
 };
 
 
@@ -86,32 +112,63 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
-  Query: ResolverTypeWrapper<{}>;
-  Int: ResolverTypeWrapper<Scalars['Int']>;
+  DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
+  Date: ResolverTypeWrapper<Scalars['Date']>;
+  Time: ResolverTypeWrapper<Scalars['Time']>;
+  Line: ResolverTypeWrapper<Line>;
   String: ResolverTypeWrapper<Scalars['String']>;
+  Int: ResolverTypeWrapper<Scalars['Int']>;
+  Query: ResolverTypeWrapper<{}>;
   Subscription: ResolverTypeWrapper<{}>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
-  Query: {};
-  Int: Scalars['Int'];
+  DateTime: Scalars['DateTime'];
+  Date: Scalars['Date'];
+  Time: Scalars['Time'];
+  Line: Line;
   String: Scalars['String'];
+  Int: Scalars['Int'];
+  Query: {};
   Subscription: {};
   Boolean: Scalars['Boolean'];
 };
 
+export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
+  name: 'DateTime';
+}
+
+export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any> {
+  name: 'Date';
+}
+
+export interface TimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Time'], any> {
+  name: 'Time';
+}
+
+export type LineResolvers<ContextType = any, ParentType extends ResolversParentTypes['Line'] = ResolversParentTypes['Line']> = {
+  text?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  rowid?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  timestamp?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType>;
+};
+
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   numCpus?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  stdin?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  stdin?: Resolver<Array<ResolversTypes['Line']>, ParentType, ContextType, RequireFields<QueryStdinArgs, 'limit' | 'offset'>>;
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
-  stdin?: SubscriptionResolver<ResolversTypes['String'], "stdin", ParentType, ContextType>;
+  stdin?: SubscriptionResolver<ResolversTypes['Line'], "stdin", ParentType, ContextType, RequireFields<SubscriptionStdinArgs, never>>;
 };
 
 export type Resolvers<ContextType = any> = {
+  DateTime?: GraphQLScalarType;
+  Date?: GraphQLScalarType;
+  Time?: GraphQLScalarType;
+  Line?: LineResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
 };

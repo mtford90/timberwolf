@@ -87,9 +87,15 @@ function replaceJavascriptPlaceholders(potentialJSON: string) {
 }
 
 export function matchJSON(line: string): LogNode[] {
-  const matches = XRegExp.matchRecursive(line, "{|\\[", "}|\\]", "g", {
-    valueNames: ["text", "left-bracket", "contents", "right-bracket"],
-  });
+  let matches: Match[] = [];
+  try {
+    matches = XRegExp.matchRecursive(line, "{|\\[", "}|\\]", "g", {
+      valueNames: ["text", "left-bracket", "contents", "right-bracket"],
+    });
+  } catch (err) {
+    console.error(`error matching line "${line}"`, err);
+    throw err;
+  }
 
   const nodes: LogNode[] = [];
 

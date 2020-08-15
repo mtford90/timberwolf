@@ -2,12 +2,14 @@ import { PubSub } from "graphql-subscriptions";
 import mitt from "mitt";
 import { StdinPublisher } from "./stdin-publisher";
 import { deepMock } from "../../../../tests/util";
+import { Database } from "../database";
 
 describe("stdin publisher", () => {
   let pubSub: PubSub;
   let emitter: ReturnType<typeof mitt>;
   let sut: StdinPublisher;
   let stdin: typeof process.stdin;
+  let database: Database;
 
   beforeEach(() => {
     pubSub = new PubSub();
@@ -22,7 +24,10 @@ describe("stdin publisher", () => {
         emitter.off(event, handler);
       }),
     });
-    sut = new StdinPublisher(pubSub, stdin);
+    database = deepMock<Database>({
+      insert: jest.fn(),
+    });
+    sut = new StdinPublisher({ pubSub, stdin, database });
     sut.init();
   });
 
@@ -47,9 +52,11 @@ describe("stdin publisher", () => {
     });
 
     it("should store the line", async () => {
-      const line = "testing\n";
+      const line = "testing";
       emitter.emit("data", Buffer.from(line, "utf8"));
-      expect(sut.stdinLines).toEqual([line]);
+      expect(database.insert).toHaveBeenCalledWith([
+        { text: "testing", path: "stdin" },
+      ]);
     });
   });
 });

@@ -1,11 +1,13 @@
 /* eslint-disable */
 import { IpcRenderer } from "electron";
-import {SerializableGraphQLRequest} from "./types";
-
-const GRAPHQL_CHANNEL = "graphql";
+import {GraphQLChannelPayload, SerializableGraphQLRequest} from "./types";
+import {GRAPHQL_CHANNEL} from "./constants";
 
 type Listener = { onData: (data: any) => void; onError: (error: any) => void; onComplete: () => void };
 
+/**
+ * Enables graphql communication over the IPC renderer
+ */
 export class GqlIpcDispatcher {
   private listeners: Map<
     string,
@@ -42,7 +44,6 @@ export class GqlIpcDispatcher {
 
   constructor(ipc: IpcRenderer) {
     this.ipc = ipc;
-
     this.ipc.on(GRAPHQL_CHANNEL, this.listener);
   }
 
@@ -53,14 +54,22 @@ export class GqlIpcDispatcher {
       // world safe javascript is enabled, but still, probably nicer not to have to use cross-world javascript execution at all
       request: (request: SerializableGraphQLRequest, listener: Listener): string => {
         const requestId = `${++this.counter}`;
-        this.ipc.send(GRAPHQL_CHANNEL, requestId, request);
+        this.send({type: 'request', request, id: requestId});
         this.listeners.set(requestId, listener);
         return requestId;
+      },
+      cancel: (requestId: string) => {
+        this.send({type: 'cancel-request', id: requestId});
+        this.listeners.delete(requestId)
       }
     }
   }
 
+  private send(payload: GraphQLChannelPayload) {
+    this.ipc.send(GRAPHQL_CHANNEL, payload);
+  }
+
   public dispose() {
-    this.ipc.removeListener(GRAPHQL_CHANNEL, this.listener);
+    this.ipc.off(GRAPHQL_CHANNEL, this.listener);
   }
 }

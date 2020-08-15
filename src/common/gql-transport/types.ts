@@ -22,3 +22,12 @@ export interface SerializableGraphQLRequest {
   context?: Record<string, any>;
   extensions?: Record<string, any>;
 }
+
+export type GraphQLChannelPayload = {
+  type: 'request';
+  id: string;
+  request: SerializableGraphQLRequest;
+} | {
+  type: 'cancel-request';
+  id: string;
+}

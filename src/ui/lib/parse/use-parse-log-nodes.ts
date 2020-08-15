@@ -13,11 +13,11 @@ export function useParseLogNodes(logStr: string | string[] | null) {
     rows: [],
   });
 
-  const toParse = Array.isArray(logStr) ? logStr.join("\n") : logStr;
-
   const { worker } = useWorker();
 
   useEffect(() => {
+    const toParse = Array.isArray(logStr) ? logStr.join("\n") : logStr;
+
     if (toParse && worker) {
       worker
         .parseLogs(toParse.split(/\n|\r|\r\n/g))

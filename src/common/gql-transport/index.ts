@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { createAsyncIterator, forAwaitEach, isAsyncIterable } from "iterall";
+import {createAsyncIterator, forAwaitEach, isAsyncIterable} from "iterall";
 import {
   ApolloLink,
   FetchResult,
@@ -7,14 +7,14 @@ import {
   execute as executeLink,
   Operation,
 } from "@apollo/client";
-import { getMainDefinition } from "@apollo/client/utilities";
-import { parse, execute, subscribe, ExecutionArgs } from "graphql";
-import { serializeError } from "serialize-error";
+import {getMainDefinition} from "@apollo/client/utilities";
+import {parse, execute, subscribe, ExecutionArgs} from "graphql";
+import {serializeError} from "serialize-error";
 import {
-  SerializableGraphQLRequest,
   SchemaLinkOptions,
-  IpcExecutorOptions,
+  IpcExecutorOptions, GraphQLChannelPayload,
 } from "./types";
+import {IpcMainEvent} from 'electron'
 
 const isSubscription = (query: any) => {
   const main = getMainDefinition(query);
@@ -31,10 +31,27 @@ const ensureIterable = (data: any) => {
   return createAsyncIterator([data]);
 };
 
+const BREAK = {}
+
+async function forAwaitEachBreakable (collection: any, callback: any) {
+  try {
+    await forAwaitEach(collection, callback)
+  } catch (error) {
+    if (error !== BREAK) {
+      throw error
+    }
+  }
+}
+
 export const createSchemaLink = <TRoot = any>(options: SchemaLinkOptions) => {
-  const handleRequest = async (request: Operation, observer: any) => {
+  const handleRequest = async (request: Operation, observer: any, isCancelled: () => boolean) => {
     try {
       const context = options.context && (await options.context(request));
+
+      if (isCancelled()) {
+        return
+      }
+
       const args: ExecutionArgs = {
         schema: options.schema,
         rootValue: options.root,
@@ -48,9 +65,14 @@ export const createSchemaLink = <TRoot = any>(options: SchemaLinkOptions) => {
         ? subscribe(args)
         : execute(args);
       const iterable = ensureIterable(await result) as AsyncIterable<any>;
-      await forAwaitEach(iterable, (value: any) => {
+
+      await forAwaitEachBreakable(iterable, (value: any) => {
+        if (isCancelled()) {
+          throw BREAK
+        }
         observer.next(value)
       });
+
       observer.complete();
     } catch (error) {
       observer.error(error);
@@ -59,7 +81,13 @@ export const createSchemaLink = <TRoot = any>(options: SchemaLinkOptions) => {
 
   const createObservable = (request: Operation) => {
     return new Observable<FetchResult>((observer) => {
-      handleRequest(request, observer);
+      let cancelled = false;
+
+      handleRequest(request, observer, () => cancelled);
+
+      return () => {
+        cancelled = true;
+      }
     });
   };
 
@@ -68,23 +96,38 @@ export const createSchemaLink = <TRoot = any>(options: SchemaLinkOptions) => {
 
 export const createIpcExecutor = (options: IpcExecutorOptions) => {
   const channel = options.channel || "graphql";
-  const listener = (event: any, id: any, request: SerializableGraphQLRequest) => {
-    const result: Observable<FetchResult> = executeLink(options.link, {
-      ...request,
-      query: parse(request.query),
-    });
+  const subscriptions = new Map<string, ReturnType<typeof Observable.prototype.subscribe>>();
 
-    const sendIpc = (type: any, data?: any) => {
-      if (!event.sender.isDestroyed()) {
-        event.sender.send(channel, id, type, data);
-      }
-    };
+  const listener = (event: IpcMainEvent, payload: GraphQLChannelPayload) => {
+    if (payload.type === 'request') {
+      const {request, id} = payload;
+      const result: Observable<FetchResult> = executeLink(options.link, {
+        ...request,
+        query: parse(request.query),
+      });
 
-    return result.subscribe(
-      (data) => sendIpc("data", data),
-      (error) => sendIpc("error", serializeError(error)),
-      () => sendIpc("complete")
-    );
+      const sendIpc = (type: any, data?: any) => {
+        const sender = event.sender;
+        if (!sender.isDestroyed()) {
+          sender.send(channel, id, type, data);
+        }
+      };
+
+      subscriptions.set(id, result.subscribe(
+        (data) => sendIpc("data", data),
+        (error) => {
+          sendIpc("error", serializeError(error))
+          subscriptions.delete(id)
+        },
+        () => {
+          sendIpc("complete")
+          subscriptions.delete(id)
+        }
+      ))
+    } else if (payload.type === 'cancel-request') {
+      subscriptions.get(payload.id)?.unsubscribe()
+      subscriptions.delete(payload.id)
+    }
   };
 
   options.ipc.on(channel, listener);

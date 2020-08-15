@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import LogWorker from "./LogWorker";
+import MainThreadWorkerInterface from "./MainThreadWorkerInterface";
 import { useNumCpus } from "../use-num-cpus";
 
 type UseWorkerState = {
-  worker: LogWorker | null;
+  worker: MainThreadWorkerInterface | null;
   loading: boolean;
   error: unknown;
 };
@@ -24,7 +24,7 @@ export function useWorker() {
 
   useEffect(() => {
     if (numCpus !== null) {
-      LogWorker.getLogWorker(numCpus)
+      MainThreadWorkerInterface.workerInterface(numCpus)
         .then((worker) => {
           updateState({ loading: false, worker });
         })

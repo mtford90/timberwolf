@@ -1,8 +1,18 @@
+scalar DateTime
+scalar Date
+scalar Time
+
+type Line {
+    text: String!
+    rowid: Int!
+    timestamp: DateTime!
+}
+
 type Query {
     numCpus: Int!
-    stdin: [String!]!
+    stdin(limit: Int!, offset: Int!, filter: String): [Line!]!
 }
 
 type Subscription {
-    stdin: String!
+    stdin(filter: String): Line!
 }

@@ -1,4 +1,5 @@
 import sqlite, { Database as SqliteDatabase } from "better-sqlite3";
+import { compact } from "lodash";
 
 export class Database {
   private db: SqliteDatabase;
@@ -30,37 +31,60 @@ export class Database {
     const stmt = this.db.prepare(
       "INSERT INTO logs (path, timestamp, text) VALUES (?,?,?)"
     );
-    rows.forEach(({ path, timestamp, text }) => {
-      stmt.run(path, timestamp || Date.now(), text);
+
+    const rowIds = rows.map(({ path, timestamp, text }) => {
+      return stmt.run(path, timestamp || Date.now(), text)
+        .lastInsertRowid as number;
     });
+
+    return this.getMany(compact(rowIds));
+  }
+
+  getMany(
+    rowIds: number[],
+    opts: {
+      fields?: Array<"rowid" | "path" | "timestamp" | "text">;
+    } = {}
+  ): Array<{ rowid: number; path: string; timestamp: number; text: string }> {
+    const rowIdsList = `(${rowIds.join(",")})`;
+
+    return this.db
+      .prepare(
+        `SELECT ${this.getFields(opts)} FROM logs WHERE ROWID in ${rowIdsList}`
+      )
+      .all();
   }
 
   lines(
     path: string,
-    text: string,
     opts: {
+      filter?: string | null;
       offset?: number;
       limit?: number;
       fields?: Array<"rowid" | "path" | "timestamp" | "text">;
     } = {}
-  ): Promise<
-    Array<{ rowid: string; path: string; timestamp: number; text: string }>
-  > {
+  ): Array<{ rowid: number; path: string; timestamp: number; text: string }> {
     const offset = opts.offset || 0;
     const limit = opts.limit || 10;
-    const fields = opts.fields || ["rowid", "path", "timestamp", "text"];
+    const fields = this.getFields(opts);
 
     const query = `
-      SELECT ${fields.join(",")}
+      SELECT ${fields}
       FROM logs
-      WHERE text LIKE '%${text}%'
-      AND path = '${path}'
+      WHERE ${opts.filter ? `text LIKE '%${opts.filter}%' AND` : ""}
+      path = '${path}'
       ORDER BY rowid asc
       LIMIT  ${limit}
       OFFSET ${offset};
     `;
 
-    return this.db.prepare(query).all() as any;
+    return this.db.prepare(query).all();
+  }
+
+  private getFields(opts: {
+    fields?: Array<"rowid" | "path" | "timestamp" | "text">;
+  }) {
+    return (opts.fields || ["rowid", "path", "timestamp", "text"]).join(",");
   }
 
   numLines(path: string) {

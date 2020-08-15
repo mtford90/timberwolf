@@ -1,4 +1,5 @@
 import "../common/promises";
+import "bluebird-global";
 
 import { app, BrowserWindow } from "electron";
 import debug from "electron-debug";
@@ -25,6 +26,8 @@ let win: BrowserWindow;
 debug();
 
 const database = new Database();
+
+database.init();
 
 const { publishers } = configureServer({ database });
 
