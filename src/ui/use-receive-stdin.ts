@@ -22,14 +22,17 @@ export function useReceiveStdin(fn: (data: string) => void) {
   const { data } = useQuery<StdInQuery>(STDIN_QUERY);
 
   useEffect(() => {
-    const observable = client.subscribe<StdIn>({ query: STDIN_SUBSCRIPTION });
-    const subscription = observable.subscribe((observer) => {
-      if (observer.data) {
-        fn(observer.data.stdin);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [client]);
+    if (data?.stdin) {
+      const observable = client.subscribe<StdIn>({ query: STDIN_SUBSCRIPTION });
+      const subscription = observable.subscribe((observer) => {
+        if (observer.data) {
+          fn(observer.data.stdin);
+        }
+      });
+      return () => subscription.unsubscribe();
+    }
+    return () => {};
+  }, [client, data?.stdin]);
 
   return data?.stdin || null;
 }

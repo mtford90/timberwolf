@@ -1,11 +1,9 @@
 import { createContext, useContext } from "react";
 import { ApolloClient } from "@apollo/client";
-import { IndexingStore } from "./indexing-store";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function initStores(client: ApolloClient<any>) {
-  return {
-    indexingStore: new IndexingStore(client),
-  };
+  return {};
 }
 
 type Stores = ReturnType<typeof initStores>;

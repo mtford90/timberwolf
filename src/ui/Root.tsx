@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 
-import { Tabs } from "./tabs/Tabs";
+import TabStdIn from "./tabs/TabStdIn";
 
 const RootContainer = styled.div`
   width: 100vw;
@@ -9,8 +9,8 @@ const RootContainer = styled.div`
 
 export default function Root() {
   return (
-      <RootContainer>
-        <Tabs />
-      </RootContainer>
+    <RootContainer>
+      <TabStdIn />
+    </RootContainer>
   );
 }

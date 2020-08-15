@@ -9,19 +9,17 @@ import {
 } from "../../common/gql-transport";
 import { initPublishers } from "./publishers";
 import { initResolvers } from "./resolvers";
-import { FileIndexer } from "./files/indexing/FileIndexer";
 import { Database } from "./database";
 
-export default function configureServer({ database }: { database: Database }) {
-  const indexer = new FileIndexer(database);
-
-  const publishers = initPublishers(indexer);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function configureServer(_opts: { database: Database }) {
+  const publishers = initPublishers();
 
   values(publishers).forEach((pub) => {
     pub.init();
   });
 
-  const resolvers = initResolvers({ publishers, indexer });
+  const resolvers = initResolvers({ publishers });
 
   const link = createSchemaLink({
     schema: makeExecutableSchema({
