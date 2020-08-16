@@ -1,39 +1,43 @@
 import * as React from "react";
-import styled, { DefaultTheme, ThemedStyledProps } from "styled-components";
+import styled from "styled-components";
 import { LogNode, LogNodeType } from "../lib/parse/json";
-import { TextNode as _Text } from "./TextNode";
+import { TextNode } from "./TextNode";
 import { JsonNode } from "./JSON";
+import { Line } from "../../graphql-types.generated";
 
-export interface Row {
-  id: string;
-  nodes: Array<LogNode & { id: string }>;
-}
+const Container = styled.div`
+  &:nth-child(odd) {
+    background-color: #f6f6f6;
+  }
 
-const Text = styled(_Text)`
-  align-self: flex-start;
-`;
-
-const RowContainer = styled.div`
   width: 100vw;
-  background-color: ${(
-    props: ThemedStyledProps<{ odd: boolean }, DefaultTheme>
-  ) => (props.odd ? props.theme.colors.oddRow : "transparent")};
   display: flex;
-  align-items: center;
   flex-wrap: wrap;
   overflow: hidden;
+  align-items: center;
+  min-height: 28px;
 `;
 
-export function LogRow({ row, index }: { row: Row; index: number }) {
+export type Row = Line & {
+  nodes: Array<LogNode & { id: string }>;
+};
+
+export function LogRow({ row }: { row: Row }) {
   return (
-    <RowContainer odd={Boolean(index % 2)}>
+    <Container>
       {row.nodes.map((node) => {
         if (node.type === LogNodeType.TEXT) {
-          return <Text key={node.id} node={node} />;
+          return (
+            <TextNode
+              style={{ alignSelf: "flex-start" }}
+              key={node.id}
+              node={node}
+            />
+          );
         }
 
         return <JsonNode key={node.id} node={node} />;
       })}
-    </RowContainer>
+    </Container>
   );
 }

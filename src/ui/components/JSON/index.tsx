@@ -5,7 +5,7 @@ import { JsonLogNode } from "../../lib/parse/json";
 import { renderLabel, renderValue } from "./renderers";
 import { theme } from "./theme";
 
-const Wrapper = styled.code`
+const CodeBlock = styled.code`
   display: inline-block;
   max-width: 100vw;
 
@@ -51,7 +51,7 @@ export function JsonNode({ node }: { node: JsonLogNode }) {
   );
 
   return (
-    <Wrapper>
+    <CodeBlock>
       <JSONTree
         data={node.object}
         invertTheme
@@ -65,6 +65,6 @@ export function JsonNode({ node }: { node: JsonLogNode }) {
           return <ItemWrapper className="item-wrapper">{itemType}</ItemWrapper>;
         }}
       />
-    </Wrapper>
+    </CodeBlock>
   );
 }

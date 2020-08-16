@@ -1,34 +1,23 @@
 import { v4 as guid } from "uuid";
 import { matchJSON } from "../lib/parse/json";
 import { Row } from "../components/LogRow";
+import { Line } from "../../graphql-types.generated";
 
-function getRow(e: string) {
-  const logNodes = matchJSON(e);
+function getRow(line: Line): Row {
+  const logNodes = matchJSON(line.text);
 
-  const row: Row = {
-    id: guid(),
+  return {
+    ...line,
     nodes: logNodes.map((node) => ({ ...node, id: guid() })),
   };
-
-  return row;
 }
 
-export const getRows = (message: unknown) => {
+export const getRows = (message: Line[]) => {
   if (!message) {
     throw new Error("No message passed");
   }
 
-  if (typeof message === "string") {
-    const row = getRow(message);
-    return [row];
-  }
-  if (Array.isArray(message)) {
-    return message.map((datum: unknown) => {
-      if (typeof datum === "string") {
-        return getRow(datum);
-      }
-      throw new Error(`Unexpected type "${typeof datum}"`);
-    });
-  }
-  throw new Error(`Unexpected type "${typeof message}"`);
+  return message.map((datum) => {
+    return getRow(datum);
+  });
 };

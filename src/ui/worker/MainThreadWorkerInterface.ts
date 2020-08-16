@@ -1,6 +1,7 @@
 import PromiseWorker from "promise-worker";
 import genericPool, { Pool } from "generic-pool-browser";
 import { getRows } from "./parse";
+import { Line } from "../../graphql-types.generated";
 
 /**
  * Main thread interface to the worker responsible for parsing logs
@@ -36,9 +37,7 @@ export default class MainThreadWorkerInterface {
     return logWorker;
   }
 
-  public async parseLogs(
-    logs: string | string[]
-  ): Promise<ReturnType<typeof getRows>> {
+  public async parseLogs(logs: Line[]): Promise<ReturnType<typeof getRows>> {
     const worker = await this.pool.acquire();
     const promiseWorker = new PromiseWorker(worker);
     const parsedLogs = await promiseWorker.postMessage(logs);

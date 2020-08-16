@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { compact, sortBy } from "lodash";
 import { Row } from "../../components/LogRow";
 import { useWorker } from "../../worker/use-worker";
+import { Line } from "../../../graphql-types.generated";
 
-export function useParseLogNodes(logStr: string | string[] | null) {
+export function useParseLogNodes(lines?: Line[] | null) {
   const [state, setState] = useState<{
     error: unknown;
     loading: boolean;
@@ -15,18 +17,35 @@ export function useParseLogNodes(logStr: string | string[] | null) {
 
   const { worker } = useWorker();
 
-  useEffect(() => {
-    const toParse = Array.isArray(logStr) ? logStr.join("\n") : logStr;
+  const parseCache = useRef(new Map<number, Row>());
 
-    if (toParse && worker) {
+  useEffect(() => {
+    if (lines && worker) {
+      const notCached: Line[] = [];
+
+      const cached = compact(
+        lines.map((l) => {
+          const cachedRow = parseCache.current.get(l.rowid);
+
+          if (!cachedRow) {
+            notCached.push(l);
+          }
+
+          return cachedRow;
+        })
+      );
+
       worker
-        .parseLogs(toParse.split(/\n|\r|\r\n/g))
+        .parseLogs(notCached)
         .then((res) => {
+          res.forEach((row) => {
+            parseCache.current.set(row.rowid, row);
+          });
           setState((s) => ({
             ...s,
             error: null,
             loading: false,
-            rows: res,
+            rows: sortBy([...cached, ...res], (r) => r.rowid),
           }));
         })
         .catch((err) => {
@@ -40,7 +59,7 @@ export function useParseLogNodes(logStr: string | string[] | null) {
     }
 
     return () => {};
-  }, [logStr, worker]);
+  }, [lines, worker]);
 
   return state;
 }
