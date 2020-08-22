@@ -10,7 +10,8 @@ type Line {
 
 type Query {
     numCpus: Int!
-    stdin(limit: Int!, offset: Int!, filter: String): [Line!]!
+    stdin(limit: Int!, beforeRowId: Int, filter: String): [Line!]!
+    numLines(beforeRowId: Int, filter: String): Int!
 }
 
 type Subscription {

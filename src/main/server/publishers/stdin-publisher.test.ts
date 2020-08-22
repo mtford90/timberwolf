@@ -25,7 +25,7 @@ describe("stdin publisher", () => {
       }),
     });
     database = deepMock<Database>({
-      insert: jest.fn(),
+      insert: jest.fn(() => [{ rowid: 0, path: "/", timestamp: 0, text: "" }]),
     });
     sut = new StdinPublisher({ pubSub, stdin, database });
     sut.init();
@@ -45,7 +45,16 @@ describe("stdin publisher", () => {
     it("should publish", (done) => {
       const line = "testing\n";
       pubSub.subscribe("stdin", (received) => {
-        expect(received).toEqual({ stdin: line });
+        expect(received).toMatchInlineSnapshot(`
+          Object {
+            "stdin": Object {
+              "__typename": "Line",
+              "rowid": 0,
+              "text": "",
+              "timestamp": 1970-01-01T00:00:00.000Z,
+            },
+          }
+        `);
         done();
       });
       emitter.emit("data", Buffer.from(line, "utf8"));

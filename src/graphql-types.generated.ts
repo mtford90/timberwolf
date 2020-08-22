@@ -28,12 +28,19 @@ export type Query = {
   __typename: 'Query';
   numCpus: Scalars['Int'];
   stdin: Array<Line>;
+  numLines: Scalars['Int'];
 };
 
 
 export type QueryStdinArgs = {
   limit: Scalars['Int'];
-  offset: Scalars['Int'];
+  beforeRowId?: Maybe<Scalars['Int']>;
+  filter?: Maybe<Scalars['String']>;
+};
+
+
+export type QueryNumLinesArgs = {
+  beforeRowId?: Maybe<Scalars['Int']>;
   filter?: Maybe<Scalars['String']>;
 };
 
@@ -157,7 +164,8 @@ export type LineResolvers<ContextType = any, ParentType extends ResolversParentT
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   numCpus?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  stdin?: Resolver<Array<ResolversTypes['Line']>, ParentType, ContextType, RequireFields<QueryStdinArgs, 'limit' | 'offset'>>;
+  stdin?: Resolver<Array<ResolversTypes['Line']>, ParentType, ContextType, RequireFields<QueryStdinArgs, 'limit'>>;
+  numLines?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumLinesArgs, never>>;
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {

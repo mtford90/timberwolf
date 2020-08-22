@@ -4,9 +4,14 @@
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL subscription operation: StdIn
+// GraphQL query operation: NumLinesQuery
 // ====================================================
 
-export interface StdIn {
-  stdin: string;
+export interface NumLinesQuery {
+  numLines: number;
+}
+
+export interface NumLinesQueryVariables {
+  rowId?: number | null;
+  filter?: string | null;
 }

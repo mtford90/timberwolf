@@ -3,7 +3,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { useState } from "react";
 import TabStdIn from "./tabs/TabStdIn";
-import useDebounce from "./use-debounce";
+import useDebouncedValue from "./use-debounced-value";
 
 const InputPane = styled.input`
   width: 100%;
@@ -25,22 +25,14 @@ const RootContainer = styled.div`
   flex-direction: column;
 `;
 
-const ContentPane = styled.div`
-  flex: 1;
-  overflow-y: scroll;
-  overflow-x: hidden;
-`;
-
 export default function Root() {
   const [filter, setFilter] = useState("");
 
-  const debouncedFilter = useDebounce(filter);
+  const debouncedFilter = useDebouncedValue(filter);
 
   return (
     <RootContainer>
-      <ContentPane>
-        <TabStdIn filter={debouncedFilter} />
-      </ContentPane>
+      <TabStdIn filter={debouncedFilter} />
       <InputPane value={filter} onChange={(e) => setFilter(e.target.value)} />
     </RootContainer>
   );

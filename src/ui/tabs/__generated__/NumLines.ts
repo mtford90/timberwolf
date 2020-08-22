@@ -4,9 +4,9 @@
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL subscription operation: FileOpenSub
+// GraphQL query operation: NumLines
 // ====================================================
 
-export interface FileOpenSub {
-  fileOpen: string[];
+export interface NumLines {
+  numLines: number;
 }

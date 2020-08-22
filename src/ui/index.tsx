@@ -11,6 +11,7 @@ import Root from "./Root";
 import { initStores, StoresProvider } from "./stores";
 import { useInitElectronApolloClient } from "../common/gql-transport/apollo";
 
+import "normalize.css";
 import "./index.css";
 
 function App() {

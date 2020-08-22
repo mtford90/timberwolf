@@ -1,18 +1,91 @@
 import * as React from "react";
-import { useReceiveStdin } from "../use-receive-stdin";
-import { useParseLogNodes } from "../lib/parse/use-parse-log-nodes";
+import styled from "styled-components";
 import { LogRow } from "../components/LogRow";
+import { useScrollController, useScrollTracking } from "./scroll";
+import { useUnseen } from "./use-unseen";
+import { useStdin } from "./use-stdin";
+
+const LogRows = styled.div`
+  margin-top: auto;
+`;
+
+const Container = styled.div`
+  display: flex;
+  flex: 1;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  justify-content: flex-end;
+`;
+
+const NewRows = styled.div`
+  background-color: red;
+  position: absolute;
+  left: 20px;
+  bottom: 100px;
+  color: white;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 1.2em;
+  cursor: pointer;
+`;
 
 export default function TabStdIn({ filter }: { filter: string }) {
-  const received = useReceiveStdin({ filter });
+  const unseen = useUnseen<number>();
 
-  const { rows } = useParseLogNodes(received);
+  const { scroller, ref } = useScrollController();
+
+  const stdin = useStdin(filter, {
+    onReset() {
+      unseen.clear();
+    },
+    onInit() {
+      scroller?.scrollToBottom();
+    },
+    onChanged(latestRowId: number) {
+      if (scroller?.shouldFollowNewLogs) {
+        // The scroll view is scrolled all the way to the bottom, so we can scroll it automatically
+        scroller?.scrollToBottom();
+      } else {
+        // The scroll view is frozen due to scroll upwards. Therefore we can add unseen logs to notify
+        // the user
+        unseen.add(latestRowId);
+      }
+    },
+  });
+
+  const onScroll = useScrollTracking({
+    scrollController: scroller,
+    onScrolledToRow: unseen.clear,
+  });
 
   return (
-    <div>
-      {rows.map((row) => (
-        <LogRow key={row.rowid} row={row} />
-      ))}
-    </div>
+    <>
+      <Container ref={ref} onScroll={onScroll}>
+        <LogRows>
+          {stdin.hasMore && (
+            <button
+              type="button"
+              onClick={() => stdin.fetchMore()}
+              disabled={stdin.loadingMore}
+            >
+              Load more
+            </button>
+          )}
+          {stdin.logs.map((log) => (
+            <LogRow key={log.rowid} row={log} />
+          ))}
+        </LogRows>
+        {unseen.items.length ? (
+          <NewRows
+            onClick={() => {
+              scroller?.scrollToBottom();
+            }}
+          >
+            {unseen.items.length} new logs
+          </NewRows>
+        ) : null}
+      </Container>
+    </>
   );
 }

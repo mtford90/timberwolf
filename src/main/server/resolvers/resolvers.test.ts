@@ -46,19 +46,28 @@ describe("resolvers", () => {
 
       const response = resolvers.Query?.stdin?.(
         parent,
-        { limit: 10, offset: 10 },
+        { limit: 10, beforeRowId: 10 },
         context,
         resolveInfo
       );
 
       it("should return the lines from the db", async () => {
-        expect(response).toEqual(["xy"]);
+        expect(response).toMatchInlineSnapshot(`
+          Array [
+            Object {
+              "__typename": "Line",
+              "rowid": 1,
+              "text": "xy",
+              "timestamp": 1970-01-01T00:00:00.343Z,
+            },
+          ]
+        `);
       });
 
       it("should call with the correct params", async () => {
         expect(deps.database.lines).toBeCalledWith("stdin", {
           limit: 10,
-          offset: 10,
+          beforeRowId: 10,
         });
       });
     });
@@ -83,20 +92,29 @@ describe("resolvers", () => {
 
       const response = resolvers.Query?.stdin?.(
         parent,
-        { limit: 10, offset: 10, filter: "yo" },
+        { limit: 10, beforeRowId: 10, filter: "yo" },
         context,
         resolveInfo
       );
 
       it("should return the lines from the db", async () => {
-        expect(response).toEqual(["xy"]);
+        expect(response).toMatchInlineSnapshot(`
+          Array [
+            Object {
+              "__typename": "Line",
+              "rowid": 1,
+              "text": "xy",
+              "timestamp": 1970-01-01T00:00:00.343Z,
+            },
+          ]
+        `);
       });
 
       it("should call with the correct params", async () => {
         expect(deps.database.lines).toBeCalledWith("stdin", {
           limit: 10,
           filter: "yo",
-          offset: 10,
+          beforeRowId: 10,
         });
       });
     });

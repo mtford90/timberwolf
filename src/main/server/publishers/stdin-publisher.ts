@@ -47,10 +47,7 @@ export class StdinPublisher extends Publisher<"stdin"> {
             const line = lines[index];
 
             this.receive(Buffer.from(line, "utf8"));
-          }, 5000);
-          setTimeout(() => {
-            // eslint-disable-next-line no-buffer-constructor
-          }, 5000);
+          }, 1000);
         },
         (err) => {
           console.error(err);

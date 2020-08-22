@@ -20,6 +20,6 @@ export interface StdInQuery {
 
 export interface StdInQueryVariables {
   limit: number;
-  offset: number;
+  beforeRowId?: number | null;
   filter?: string | null;
 }

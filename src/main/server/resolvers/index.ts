@@ -2,7 +2,6 @@ import os from "os";
 import { GraphQLDateTime, GraphQLDate, GraphQLTime } from "graphql-iso-date";
 import { withFilter } from "graphql-subscriptions";
 import {
-  Line,
   Resolvers,
   SubscriptionStdinArgs,
   Subscription,
@@ -27,15 +26,22 @@ export function initResolvers({
       numCpus() {
         return os.cpus().length;
       },
-      stdin(parent, { limit, offset, filter }) {
-        return database
-          .lines("stdin", { limit, offset, filter })
+      stdin(parent, { limit, beforeRowId, filter }) {
+        const lines = database
+          .lines("stdin", { limit, beforeRowId, filter })
           .map((res) => ({
-            __typename: "Line",
+            __typename: "Line" as const,
             timestamp: new Date(res.timestamp),
             rowid: res.rowid,
             text: res.text,
           }));
+
+        console.log("stdin", { limit, beforeRowId, filter }, lines.length);
+
+        return lines;
+      },
+      numLines(parent, { beforeRowId, filter }) {
+        return database.numLines("stdin", beforeRowId, filter);
       },
     },
 

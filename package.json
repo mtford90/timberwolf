@@ -111,7 +111,7 @@
     "@testing-library/react-hooks": "^3.4.1",
     "@types/graphql-iso-date": "^3.4.0",
     "@types/react-json-tree": "^0.6.11",
-    "@types/styled-components": "^5.1.1",
+    "@types/styled-components": "^5.1.2",
     "@types/uuid": "8.0.0",
     "better-sqlite3": "^7.1.0",
     "bluebird": "^3.7.2",

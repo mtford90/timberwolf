@@ -6,7 +6,7 @@ import React, { useEffect, useState } from "react";
  * @param delay Time in ms to wait to notify the changes
  * Refs: https://dev.to/gabe_ragland/debouncing-with-react-hooks-jci
  */
-export default function useDebounce<T>(value: T, delay = 300) {
+export default function useDebouncedValue<T>(value: T, delay = 300) {
   // State and setters for debounced value
   const [debouncedValue, setDebouncedValue] = useState(value);
 

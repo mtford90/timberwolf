@@ -59,24 +59,27 @@ export class Database {
     path: string,
     opts: {
       filter?: string | null;
-      offset?: number;
+      beforeRowId?: number | null;
       limit?: number;
       fields?: Array<"rowid" | "path" | "timestamp" | "text">;
     } = {}
   ): Array<{ rowid: number; path: string; timestamp: number; text: string }> {
-    const offset = opts.offset || 0;
+    const { beforeRowId } = opts;
     const limit = opts.limit || 10;
     const fields = this.getFields(opts);
 
     const query = `
       SELECT ${fields}
       FROM logs
-      WHERE ${opts.filter ? `text LIKE '%${opts.filter}%' AND` : ""}
+      WHERE
+      ${beforeRowId ? `rowid < ${beforeRowId} AND` : ""}
+      ${opts.filter ? `text LIKE '%${opts.filter}%' AND` : ""}
       path = '${path}'
-      ORDER BY rowid asc
+      ORDER BY rowid desc
       LIMIT  ${limit}
-      OFFSET ${offset};
     `;
+
+    console.log("lines query", query);
 
     return this.db.prepare(query).all();
   }
@@ -87,10 +90,14 @@ export class Database {
     return (opts.fields || ["rowid", "path", "timestamp", "text"]).join(",");
   }
 
-  numLines(path: string) {
-    return this.db
-      .prepare(`SELECT COUNT(*) as n FROM logs WHERE path = '${path}'`)
-      .get().n;
+  numLines(path: string, rowId?: number | null, filter?: string | null) {
+    let sql = `SELECT COUNT(*) as n FROM logs WHERE ${
+      filter ? `text LIKE '%${filter}%' AND` : ""
+    } path = '${path}'`;
+    if (rowId) {
+      sql += ` AND rowid < ${rowId}`;
+    }
+    return this.db.prepare(sql).get().n;
   }
 
   clear(path: string) {
