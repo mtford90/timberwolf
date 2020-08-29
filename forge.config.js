@@ -1,42 +1,40 @@
-// const fsx = require("fs-extra");
-// const path = require("path");
-// const os = require("os");
-// const { serialHooks } = require("electron-packager/src/hooks");
-// const pkg = require("./package.json");
+const fsx = require("fs-extra");
+const path = require("path");
+const os = require("os");
+const { serialHooks } = require("electron-packager/src/hooks");
 
-// function getPlatform() {
-//   switch (os.platform()) {
-//     case "aix":
-//     case "freebsd":
-//     case "linux":
-//     case "openbsd":
-//     case "android":
-//       return "linux";
-//     case "darwin":
-//     case "sunos":
-//       return "mac";
-//     case "win32":
-//       return "win";
-//     default:
-//       throw new Error("Unsupported platform");
-//   }
-// }
+function getPlatform() {
+  switch (os.platform()) {
+    case "aix":
+    case "freebsd":
+    case "linux":
+    case "openbsd":
+    case "android":
+      return "linux";
+    case "darwin":
+    case "sunos":
+      return "mac";
+    case "win32":
+      return "win";
+    default:
+      throw new Error("Unsupported platform");
+  }
+}
 
 module.exports = {
   packagerConfig: {
-
-    // afterCopy: [
-    //   serialHooks([
-    //     async (buildPath) => {
-    //       const binDir = path.resolve(buildPath, "../bin");
-    //       await fsx.mkdirpSync(binDir);
-    //       await fsx.copyFileSync(
-    //         path.resolve(__dirname, "resources", getPlatform(), "sonic"),
-    //         path.resolve(binDir, "sonic")
-    //       );
-    //     },
-    //   ]),
-    // ],
+    afterCopy: [
+      serialHooks([
+        async (buildPath) => {
+          const binDir = path.resolve(buildPath, "../bin");
+          await fsx.mkdirpSync(binDir);
+          await fsx.copyFileSync(
+            path.resolve(__dirname, "resources", getPlatform(), "sonic"),
+            path.resolve(binDir, "sonic")
+          );
+        },
+      ]),
+    ],
   },
   makers: [
     {
