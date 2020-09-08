@@ -43,6 +43,12 @@ export function initResolvers({
       numLines(parent, { beforeRowId, filter }) {
         return database.numLines("stdin", beforeRowId, filter);
       },
+      suggest(parent, { limit, offset, prefix }) {
+        return database.suggest("stdin", prefix, {
+          limit: limit || 10,
+          offset: offset || 0,
+        });
+      },
     },
 
     Subscription: {

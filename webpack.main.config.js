@@ -35,8 +35,8 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [
         {
-          from: path.resolve(__dirname, "sonic.template.cfg"),
-          to: path.resolve(__dirname, ".webpack/main", "sonic.template.cfg"),
+          from: path.resolve(__dirname, "src/main/server/schema.graphql"),
+          to: path.resolve(__dirname, ".webpack/main", "schema.graphql"),
         },
       ],
     }),

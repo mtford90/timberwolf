@@ -1,5 +1,5 @@
 import sqlite, { Database as SqliteDatabase } from "better-sqlite3";
-import { compact } from "lodash";
+import { compact, uniq, groupBy, flatten, keys } from "lodash";
 
 export class Database {
   private db: SqliteDatabase;
@@ -23,8 +23,34 @@ export class Database {
       
       CREATE INDEX IF NOT EXISTS idx_timestamp
       ON logs(timestamp);
+            
+      CREATE TABLE IF NOT EXISTS words
+      (
+        path      text NOT NULL,
+        text      text NOT NULL,
+        num       integer NOT NULL,
+        UNIQUE(path,text)
+      );
+      
+      CREATE INDEX IF NOT EXISTS idx_words_path
+      ON words(path);
+      
+      CREATE INDEX IF NOT EXISTS idx_words_text
+      ON words(text);
+      
+      CREATE INDEX IF NOT EXISTS idx_words_num
+      ON words(num);
     `
     );
+  }
+
+  private insertWords(path: string, words: string[]) {
+    const upsert = this.db.prepare(
+      `INSERT INTO words(path, text, num) VALUES(@path,@text,1)
+    ON CONFLICT(path,text) DO UPDATE SET num=num+1;`
+    );
+
+    words.forEach((word) => upsert.run({ path, text: word }));
   }
 
   insert(rows: Array<{ path: string; timestamp?: number; text: string }>) {
@@ -36,8 +62,44 @@ export class Database {
       return stmt.run(path, timestamp || Date.now(), text)
         .lastInsertRowid as number;
     });
+    const entries = this.getWords(rows);
+
+    entries.forEach(([path, words]) => {
+      this.insertWords(path, words);
+    });
 
     return this.getMany(compact(rowIds));
+  }
+
+  private getWords(
+    rows: Array<{ path: string; timestamp?: number; text: string }>
+  ) {
+    const grouped = groupBy(
+      rows.map((r) => {
+        const withoutSymbols = r.text.replace(
+          /[-!$%^&*()_+|~=`{}[\]:";'<>?,./]/g,
+          " "
+        );
+
+        return {
+          path: r.path,
+          words: [
+            ...withoutSymbols.split(/\s/g),
+            ...r.text.split(/(?!\(.*)\s(?![^(]*?\))/g),
+          ],
+        };
+      }),
+      (r) => r.path
+    );
+
+    const entries: [string, string[]][] = [];
+
+    keys(grouped).forEach((path) => {
+      const words = compact(flatten(grouped[path].map((g) => g.words)));
+      entries.push([path, words]);
+    });
+
+    return entries;
   }
 
   getMany(
@@ -79,8 +141,6 @@ export class Database {
       LIMIT  ${limit}
     `;
 
-    console.log("lines query", query);
-
     return this.db.prepare(query).all();
   }
 
@@ -110,5 +170,17 @@ export class Database {
 
   close() {
     this.db.close();
+  }
+
+  suggest(
+    path: string,
+    prefix: string,
+    { limit = 10, offset = 0 }: { limit?: number; offset?: number } = {}
+  ) {
+    const query = this.db.prepare(
+      `SELECT path,text,num FROM words WHERE text LIKE '${prefix}%' AND path = '${path}' ORDER BY num DESC LIMIT ${limit} OFFSET ${offset}`
+    );
+
+    return query.all().map((r) => r.text);
   }
 }

@@ -29,6 +29,7 @@ export type Query = {
   numCpus: Scalars['Int'];
   stdin: Array<Line>;
   numLines: Scalars['Int'];
+  suggest: Array<Scalars['String']>;
 };
 
 
@@ -42,6 +43,13 @@ export type QueryStdinArgs = {
 export type QueryNumLinesArgs = {
   beforeRowId?: Maybe<Scalars['Int']>;
   filter?: Maybe<Scalars['String']>;
+};
+
+
+export type QuerySuggestArgs = {
+  prefix: Scalars['String'];
+  limit?: Maybe<Scalars['Int']>;
+  offset?: Maybe<Scalars['Int']>;
 };
 
 export type Subscription = {
@@ -166,6 +174,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   numCpus?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   stdin?: Resolver<Array<ResolversTypes['Line']>, ParentType, ContextType, RequireFields<QueryStdinArgs, 'limit'>>;
   numLines?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumLinesArgs, never>>;
+  suggest?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QuerySuggestArgs, 'prefix'>>;
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {

@@ -12,6 +12,7 @@ type Query {
     numCpus: Int!
     stdin(limit: Int!, beforeRowId: Int, filter: String): [Line!]!
     numLines(beforeRowId: Int, filter: String): Int!
+    suggest(prefix: String!, limit: Int, offset: Int): [String!]!
 }
 
 type Subscription {

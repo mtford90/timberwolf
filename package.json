@@ -141,8 +141,6 @@
     "react-json-tree": "^0.11.2",
     "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",
-    "rxjs": "^6.6.2",
-    "sonic-channel": "^1.2.6",
     "styled-components": "^5.1.1",
     "ts-essentials": "^7.0.0",
     "utility-types": "^3.10.0",
