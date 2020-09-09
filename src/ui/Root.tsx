@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import styled from "styled-components";
 import TabStdIn from "./tabs/TabStdIn";
-import { Input } from "./components/Input";
+import FilterInput from "./components/FilterInput";
 
 const RootContainer = styled.div`
   width: 100vw;
@@ -18,7 +18,7 @@ export default function Root() {
   return (
     <RootContainer>
       <TabStdIn filter={filter} />
-      <Input onChangeText={setFilter} />
+      <FilterInput onChangeText={setFilter} />
     </RootContainer>
   );
 }

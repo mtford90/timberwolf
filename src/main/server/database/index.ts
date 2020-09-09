@@ -181,6 +181,12 @@ export class Database {
       `SELECT path,text,num FROM words WHERE text LIKE '${prefix}%' AND path = '${path}' ORDER BY num DESC LIMIT ${limit} OFFSET ${offset}`
     );
 
-    return query.all().map((r) => r.text);
+    const suggestions = query.all().map((r) => r.text);
+
+    if (suggestions[0]?.toLowerCase() === prefix) {
+      suggestions.shift();
+    }
+
+    return suggestions;
   }
 }

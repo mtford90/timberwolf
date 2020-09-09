@@ -207,5 +207,15 @@ describe("database", () => {
         ]
       `);
     });
+
+    it("should not include the prefix if fulfilled", async () => {
+      const res = db.suggest(path, "upload");
+      expect(res.includes("upload")).toBeFalsy();
+    });
+
+    it("should not include the prefix if fulfilled, and should be case insensitive", async () => {
+      const res = db.suggest(path, "UPLOAD");
+      expect(res.includes("upload")).toBeFalsy();
+    });
   });
 });
