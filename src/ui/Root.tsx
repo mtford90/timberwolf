@@ -1,22 +1,9 @@
 import * as React from "react";
+import { useState } from "react";
 
 import styled from "styled-components";
-import { useState } from "react";
 import TabStdIn from "./tabs/TabStdIn";
-import useDebouncedValue from "./use-debounced-value";
-
-const InputPane = styled.input`
-  width: 100%;
-  padding: 2rem;
-  border-radius: 0;
-  border-left: none;
-  border-right: none;
-  border-bottom: none;
-
-  &:focus {
-    outline: 0;
-  }
-`;
+import FilterInput from "./components/FilterInput";
 
 const RootContainer = styled.div`
   width: 100vw;
@@ -28,12 +15,10 @@ const RootContainer = styled.div`
 export default function Root() {
   const [filter, setFilter] = useState("");
 
-  const debouncedFilter = useDebouncedValue(filter);
-
   return (
     <RootContainer>
-      <TabStdIn filter={debouncedFilter} />
-      <InputPane value={filter} onChange={(e) => setFilter(e.target.value)} />
+      <TabStdIn filter={filter} />
+      <FilterInput onChangeText={setFilter} />
     </RootContainer>
   );
 }

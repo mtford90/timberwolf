@@ -196,9 +196,6 @@ out/
 # IDE
 .idea
 
-# Sonic
-./data
-
 my-db
 
 data

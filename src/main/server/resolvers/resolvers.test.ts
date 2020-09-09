@@ -26,33 +26,34 @@ describe("resolvers", () => {
         expect(response).toMatchInlineSnapshot(`4`);
       });
     });
-    describe("stdin without filter", () => {
-      const mockLines = [
-        {
-          rowid: 1,
-          path: "/path/to/something",
-          timestamp: 343,
-          text: "xy",
-        },
-      ];
+    describe("stdin", () => {
+      describe("without filter", () => {
+        const mockLines = [
+          {
+            rowid: 1,
+            path: "/path/to/something",
+            timestamp: 343,
+            text: "xy",
+          },
+        ];
 
-      const deps = deepMock<ResolverDependencies>({
-        database: {
-          lines: jest.fn(() => mockLines),
-        },
-      });
+        const deps = deepMock<ResolverDependencies>({
+          database: {
+            lines: jest.fn(() => mockLines),
+          },
+        });
 
-      const resolvers = initResolvers(deps);
+        const resolvers = initResolvers(deps);
 
-      const response = resolvers.Query?.stdin?.(
-        parent,
-        { limit: 10, beforeRowId: 10 },
-        context,
-        resolveInfo
-      );
+        const response = resolvers.Query?.stdin?.(
+          parent,
+          { limit: 10, beforeRowId: 10 },
+          context,
+          resolveInfo
+        );
 
-      it("should return the lines from the db", async () => {
-        expect(response).toMatchInlineSnapshot(`
+        it("should return the lines from the db", async () => {
+          expect(response).toMatchInlineSnapshot(`
           Array [
             Object {
               "__typename": "Line",
@@ -62,59 +63,87 @@ describe("resolvers", () => {
             },
           ]
         `);
-      });
+        });
 
-      it("should call with the correct params", async () => {
-        expect(deps.database.lines).toBeCalledWith("stdin", {
-          limit: 10,
-          beforeRowId: 10,
+        it("should call with the correct params", async () => {
+          expect(deps.database.lines).toBeCalledWith("stdin", {
+            limit: 10,
+            beforeRowId: 10,
+          });
+        });
+      });
+      describe("with filter", () => {
+        const mockLines = [
+          {
+            rowid: 1,
+            path: "/path/to/something",
+            timestamp: 343,
+            text: "xy",
+          },
+        ];
+
+        const deps = deepMock<ResolverDependencies>({
+          database: {
+            lines: jest.fn(() => mockLines),
+          },
+        });
+
+        const resolvers = initResolvers(deps);
+
+        const response = resolvers.Query?.stdin?.(
+          parent,
+          { limit: 10, beforeRowId: 10, filter: "yo" },
+          context,
+          resolveInfo
+        );
+
+        it("should return the lines from the db", async () => {
+          expect(response).toMatchInlineSnapshot(`
+          Array [
+            Object {
+              "__typename": "Line",
+              "rowid": 1,
+              "text": "xy",
+              "timestamp": 1970-01-01T00:00:00.343Z,
+            },
+          ]
+        `);
+        });
+
+        it("should call with the correct params", async () => {
+          expect(deps.database.lines).toBeCalledWith("stdin", {
+            limit: 10,
+            filter: "yo",
+            beforeRowId: 10,
+          });
         });
       });
     });
+    describe("suggest", () => {
+      it("should call the database suggest api", async () => {
+        const deps = deepMock<ResolverDependencies>({
+          database: {
+            suggest: jest.fn(() => ["hello"]),
+          },
+        });
 
-    describe("stdin with filter", () => {
-      const mockLines = [
-        {
-          rowid: 1,
-          path: "/path/to/something",
-          timestamp: 343,
-          text: "xy",
-        },
-      ];
+        const resolvers = initResolvers(deps);
+        const result = resolvers.Query?.suggest?.(
+          parent,
+          {
+            limit: 20,
+            offset: 10,
+            prefix: "h",
+          },
+          context,
+          resolveInfo
+        );
 
-      const deps = deepMock<ResolverDependencies>({
-        database: {
-          lines: jest.fn(() => mockLines),
-        },
-      });
+        expect(result).toEqual(["hello"]);
 
-      const resolvers = initResolvers(deps);
-
-      const response = resolvers.Query?.stdin?.(
-        parent,
-        { limit: 10, beforeRowId: 10, filter: "yo" },
-        context,
-        resolveInfo
-      );
-
-      it("should return the lines from the db", async () => {
-        expect(response).toMatchInlineSnapshot(`
-          Array [
-            Object {
-              "__typename": "Line",
-              "rowid": 1,
-              "text": "xy",
-              "timestamp": 1970-01-01T00:00:00.343Z,
-            },
-          ]
-        `);
-      });
-
-      it("should call with the correct params", async () => {
-        expect(deps.database.lines).toBeCalledWith("stdin", {
-          limit: 10,
-          filter: "yo",
-          beforeRowId: 10,
+        expect(deps.database.suggest).toHaveBeenCalledWith("stdin", "h", {
+          limit: 20,
+          offset: 10,
         });
       });
     });
