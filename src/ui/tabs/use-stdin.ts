@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { last } from "lodash";
-import { useReceiveStdin } from "./use-receive-stdin";
+import { useReceiveLogs } from "./use-receive-logs";
 import { useParseLogNodes } from "../lib/parse/use-parse-log-nodes";
 
 export function useStdin(
@@ -18,7 +18,8 @@ export function useStdin(
     errorLoadingMore,
     loading,
     hasMore,
-  } = useReceiveStdin({
+  } = useReceiveLogs({
+    source: "stdin",
     limit: 100,
     filter,
   });

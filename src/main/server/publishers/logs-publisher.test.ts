@@ -1,13 +1,13 @@
 import { PubSub } from "graphql-subscriptions";
 import mitt from "mitt";
-import { StdinPublisher } from "./stdin-publisher";
+import { LogsPublisher } from "./logs-publisher";
 import { deepMock } from "../../../../tests/util";
 import { Database } from "../database";
 
-describe("stdin publisher", () => {
+describe("logs publisher", () => {
   let pubSub: PubSub;
   let emitter: ReturnType<typeof mitt>;
-  let sut: StdinPublisher;
+  let sut: LogsPublisher;
   let stdin: typeof process.stdin;
   let database: Database;
 
@@ -25,9 +25,11 @@ describe("stdin publisher", () => {
       }),
     });
     database = deepMock<Database>({
-      insert: jest.fn(() => [{ rowid: 0, path: "/", timestamp: 0, text: "" }]),
+      insert: jest.fn(() => [
+        { rowid: 0, source: "/", timestamp: 0, text: "" },
+      ]),
     });
-    sut = new StdinPublisher({ pubSub, stdin, database });
+    sut = new LogsPublisher({ pubSub, stdin, database });
     sut.init();
   });
 
@@ -44,12 +46,13 @@ describe("stdin publisher", () => {
   describe("when receiving data", () => {
     it("should publish", (done) => {
       const line = "testing\n";
-      pubSub.subscribe("stdin", (received) => {
+      pubSub.subscribe("logs", (received) => {
         expect(received).toMatchInlineSnapshot(`
           Object {
-            "stdin": Object {
-              "__typename": "Line",
+            "logs": Object {
+              "__typename": "Log",
               "rowid": 0,
+              "source": "stdin",
               "text": "",
               "timestamp": 1970-01-01T00:00:00.000Z,
             },
@@ -64,7 +67,7 @@ describe("stdin publisher", () => {
       const line = "testing";
       emitter.emit("data", Buffer.from(line, "utf8"));
       expect(database.insert).toHaveBeenCalledWith([
-        { text: "testing", path: "stdin" },
+        { text: "testing", source: "stdin" },
       ]);
     });
   });

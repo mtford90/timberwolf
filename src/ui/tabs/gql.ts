@@ -1,8 +1,8 @@
 import gql from "graphql-tag";
 
-export const STDIN_SUBSCRIPTION = gql`
-  subscription StdInSubscription($filter: String) {
-    stdin(filter: $filter) {
+export const LOGS_SUBSCRIPTION = gql`
+  subscription LogsSubscription($source: String!, $filter: String) {
+    logs(source: $source, filter: $filter) {
       rowid
       timestamp
       text
@@ -10,9 +10,19 @@ export const STDIN_SUBSCRIPTION = gql`
   }
 `;
 
-export const STDIN_QUERY = gql`
-  query StdInQuery($limit: Int!, $beforeRowId: Int, $filter: String) {
-    stdin(limit: $limit, beforeRowId: $beforeRowId, filter: $filter) {
+export const LOGS_QUERY = gql`
+  query LogsQuery(
+    $source: String!
+    $limit: Int!
+    $beforeRowId: Int
+    $filter: String
+  ) {
+    logs(
+      source: $source
+      limit: $limit
+      beforeRowId: $beforeRowId
+      filter: $filter
+    ) {
       rowid
       timestamp
       text
@@ -20,8 +30,8 @@ export const STDIN_QUERY = gql`
   }
 `;
 
-export const NUM_LINES_QUERY = gql`
-  query NumLinesQuery($rowId: Int, $filter: String) {
-    numLines(beforeRowId: $rowId, filter: $filter)
+export const NUM_LOGS_QUERY = gql`
+  query NumLogsQuery($source: String!, $rowId: Int, $filter: String) {
+    numLogs(source: $source, beforeRowId: $rowId, filter: $filter)
   }
 `;

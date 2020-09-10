@@ -31,7 +31,7 @@ describe("resolvers", () => {
         const mockLines = [
           {
             rowid: 1,
-            path: "/path/to/something",
+            source: "/path/to/something",
             timestamp: 343,
             text: "xy",
           },
@@ -39,34 +39,35 @@ describe("resolvers", () => {
 
         const deps = deepMock<ResolverDependencies>({
           database: {
-            lines: jest.fn(() => mockLines),
+            logs: jest.fn(() => mockLines),
           },
         });
 
         const resolvers = initResolvers(deps);
 
-        const response = resolvers.Query?.stdin?.(
+        const response = resolvers.Query?.logs?.(
           parent,
-          { limit: 10, beforeRowId: 10 },
+          { limit: 10, beforeRowId: 10, source: "stdin" },
           context,
           resolveInfo
         );
 
-        it("should return the lines from the db", async () => {
+        it("should return the logs from the db", async () => {
           expect(response).toMatchInlineSnapshot(`
-          Array [
-            Object {
-              "__typename": "Line",
-              "rowid": 1,
-              "text": "xy",
-              "timestamp": 1970-01-01T00:00:00.343Z,
-            },
-          ]
-        `);
+            Array [
+              Object {
+                "__typename": "Log",
+                "rowid": 1,
+                "source": "stdin",
+                "text": "xy",
+                "timestamp": 1970-01-01T00:00:00.343Z,
+              },
+            ]
+          `);
         });
 
         it("should call with the correct params", async () => {
-          expect(deps.database.lines).toBeCalledWith("stdin", {
+          expect(deps.database.logs).toBeCalledWith("stdin", {
             limit: 10,
             beforeRowId: 10,
           });
@@ -76,7 +77,7 @@ describe("resolvers", () => {
         const mockLines = [
           {
             rowid: 1,
-            path: "/path/to/something",
+            source: "/path/to/something",
             timestamp: 343,
             text: "xy",
           },
@@ -84,34 +85,35 @@ describe("resolvers", () => {
 
         const deps = deepMock<ResolverDependencies>({
           database: {
-            lines: jest.fn(() => mockLines),
+            logs: jest.fn(() => mockLines),
           },
         });
 
         const resolvers = initResolvers(deps);
 
-        const response = resolvers.Query?.stdin?.(
+        const response = resolvers.Query?.logs?.(
           parent,
-          { limit: 10, beforeRowId: 10, filter: "yo" },
+          { limit: 10, beforeRowId: 10, filter: "yo", source: "stdin" },
           context,
           resolveInfo
         );
 
-        it("should return the lines from the db", async () => {
+        it("should return the logs from the db", async () => {
           expect(response).toMatchInlineSnapshot(`
-          Array [
-            Object {
-              "__typename": "Line",
-              "rowid": 1,
-              "text": "xy",
-              "timestamp": 1970-01-01T00:00:00.343Z,
-            },
-          ]
-        `);
+            Array [
+              Object {
+                "__typename": "Log",
+                "rowid": 1,
+                "source": "stdin",
+                "text": "xy",
+                "timestamp": 1970-01-01T00:00:00.343Z,
+              },
+            ]
+          `);
         });
 
         it("should call with the correct params", async () => {
-          expect(deps.database.lines).toBeCalledWith("stdin", {
+          expect(deps.database.logs).toBeCalledWith("stdin", {
             limit: 10,
             filter: "yo",
             beforeRowId: 10,
@@ -167,12 +169,14 @@ describe("resolvers", () => {
             })
           );
 
-          const stdin = resolvers.Subscription?.stdin;
+          const stdin = resolvers.Subscription?.logs;
 
           if (typeof stdin === "object") {
             const iterator: AsyncIterator<{ stdin: string }> = stdin.subscribe(
               parent,
-              {},
+              {
+                source: "stdin",
+              },
               context,
               resolveInfo
             ) as AsyncIterator<{ stdin: string }>;
@@ -208,33 +212,36 @@ describe("resolvers", () => {
             })
           );
 
-          const stdin = resolvers.Subscription?.stdin;
+          const stdin = resolvers.Subscription?.logs;
 
           if (typeof stdin === "object") {
             const iterator = stdin.subscribe(
               parent,
               {
+                source: "stdin",
                 filter: "bl",
               },
               context,
               resolveInfo
-            ) as AsyncIterator<Pick<Subscription, "stdin">>;
+            ) as AsyncIterator<Pick<Subscription, "logs">>;
 
-            const filteredPayload: Pick<Subscription, "stdin"> = {
-              stdin: {
-                __typename: "Line",
+            const filteredPayload: Pick<Subscription, "logs"> = {
+              logs: {
+                __typename: "Log",
                 text: "123",
                 timestamp: 0,
                 rowid: 1,
+                source: "stdin",
               },
             };
 
-            const matchingPayload: Pick<Subscription, "stdin"> = {
-              stdin: {
-                __typename: "Line",
+            const matchingPayload: Pick<Subscription, "logs"> = {
+              logs: {
+                __typename: "Log",
                 text: "blah",
                 timestamp: 0,
                 rowid: 2,
+                source: "stdin",
               },
             };
 

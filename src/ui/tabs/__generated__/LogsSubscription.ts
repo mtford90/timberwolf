@@ -4,22 +4,21 @@
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL query operation: StdInQuery
+// GraphQL subscription operation: LogsSubscription
 // ====================================================
 
-export interface StdInQuery_stdin {
-  __typename: "Line";
+export interface LogsSubscription_logs {
+  __typename: "Log";
   rowid: number;
   timestamp: any;
   text: string;
 }
 
-export interface StdInQuery {
-  stdin: StdInQuery_stdin[];
+export interface LogsSubscription {
+  logs: LogsSubscription_logs;
 }
 
-export interface StdInQueryVariables {
-  limit: number;
-  beforeRowId?: number | null;
+export interface LogsSubscriptionVariables {
+  source: string;
   filter?: string | null;
 }

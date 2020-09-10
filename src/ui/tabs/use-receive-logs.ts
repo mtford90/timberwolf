@@ -1,25 +1,27 @@
 import { useEffect } from "react";
 import { useQuery } from "@apollo/client";
 
-import { last, uniqBy } from "lodash";
-import { STDIN_QUERY, STDIN_SUBSCRIPTION, NUM_LINES_QUERY } from "./gql";
-import { StdInQuery, StdInQueryVariables } from "./__generated__/StdInQuery";
-import {
-  StdInSubscription,
-  StdInSubscriptionVariables,
-} from "./__generated__/StdInSubscription";
-import {
-  NumLinesQuery,
-  NumLinesQueryVariables,
-} from "./__generated__/NumLinesQuery";
-import { useAsyncAction } from "../use-async-action";
+import { last } from "lodash";
+import { LOGS_QUERY, LOGS_SUBSCRIPTION, NUM_LOGS_QUERY } from "./gql";
 
-export function useNumLines(rowId?: number, filter?: string) {
-  const { data, loading } = useQuery<NumLinesQuery, NumLinesQueryVariables>(
-    NUM_LINES_QUERY,
+import { useAsyncAction } from "../use-async-action";
+import {
+  LogsSubscription,
+  LogsSubscriptionVariables,
+} from "./__generated__/LogsSubscription";
+import {
+  NumLogsQuery,
+  NumLogsQueryVariables,
+} from "./__generated__/NumLogsQuery";
+import { LogsQuery, LogsQueryVariables } from "./__generated__/LogsQuery";
+
+export function useNumLogs(source: string, rowId?: number, filter?: string) {
+  const { data, loading } = useQuery<NumLogsQuery, NumLogsQueryVariables>(
+    NUM_LOGS_QUERY,
     {
       variables: {
         rowId,
+        source,
         filter,
       },
     }
@@ -27,43 +29,50 @@ export function useNumLines(rowId?: number, filter?: string) {
 
   return {
     loading,
-    numLines: data?.numLines || 0,
+    numLogs: data?.numLogs || 0,
   };
 }
 
 /**
  * Hook up to stdin provided over gql
  */
-export function useReceiveStdin({
+export function useReceiveLogs({
+  source,
   limit = 10,
   filter,
-}: { limit?: number; filter?: string } = {}) {
+}: {
+  source: string;
+  limit?: number;
+  filter?: string;
+}) {
   const { data, subscribeToMore, loading: loadingLines, fetchMore } = useQuery<
-    StdInQuery,
-    StdInQueryVariables
-  >(STDIN_QUERY, {
+    LogsQuery,
+    LogsQueryVariables
+  >(LOGS_QUERY, {
     variables: {
+      source,
       limit,
       filter,
     },
   });
 
   useEffect(() => {
-    // Keep adding new lines to stdin as we receive them
+    // Keep adding new logs to stdin as we receive them
     const unsubscribe = subscribeToMore<
-      StdInSubscription,
-      StdInSubscriptionVariables
+      LogsSubscription,
+      LogsSubscriptionVariables
     >({
-      document: STDIN_SUBSCRIPTION,
+      document: LOGS_SUBSCRIPTION,
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data) return prev;
 
         return {
-          stdin: [subscriptionData.data.stdin, ...prev.stdin],
+          logs: [subscriptionData.data.logs, ...prev.logs],
         };
       },
       variables: {
         filter,
+        source,
       },
     });
 
@@ -75,9 +84,10 @@ export function useReceiveStdin({
     };
   }, [subscribeToMore, filter]);
 
-  const beforeRowId = last(data?.stdin)?.rowid;
+  const beforeRowId = last(data?.logs)?.rowid;
 
-  const { numLines, loading: loadingNumLines } = useNumLines(
+  const { numLogs, loading: loadingNumLines } = useNumLogs(
+    source,
     beforeRowId,
     filter
   );
@@ -87,7 +97,7 @@ export function useReceiveStdin({
     action: loadMore,
     error: errorLoadingMore,
   } = useAsyncAction(async () => {
-    if (data?.stdin) {
+    if (data?.logs) {
       const variables = {
         limit,
         beforeRowId,
@@ -99,7 +109,7 @@ export function useReceiveStdin({
           if (!fetchMoreResult) return prev;
 
           return {
-            stdin: [...prev.stdin, ...fetchMoreResult.stdin],
+            logs: [...prev.logs, ...fetchMoreResult.logs],
           };
         },
       });
@@ -110,8 +120,8 @@ export function useReceiveStdin({
   }, [beforeRowId, fetchMore, data]);
 
   return {
-    data: data?.stdin || null,
-    hasMore: numLines > 0,
+    data: data?.logs || null,
+    hasMore: numLogs > 0,
     loading: loadingLines || loadingNumLines,
     loadMore,
     loadingMore,

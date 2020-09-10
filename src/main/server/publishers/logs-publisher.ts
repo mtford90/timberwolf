@@ -6,7 +6,7 @@ import { Database } from "../database";
 
 export type StdinReadStream = typeof process.stdin;
 
-export class StdinPublisher extends Publisher<"stdin"> {
+export class LogsPublisher extends Publisher<"logs"> {
   private stdin: NodeJS.ReadStream & { fd: 0 };
 
   private database: Database;
@@ -20,7 +20,7 @@ export class StdinPublisher extends Publisher<"stdin"> {
     database: Database;
     stdin?: StdinReadStream;
   }) {
-    super("stdin", pubSub);
+    super("logs", pubSub);
     this.stdin = stdin;
     this.database = database;
   }
@@ -41,12 +41,12 @@ export class StdinPublisher extends Publisher<"stdin"> {
     if (env === "development") {
       fs.readFile("/Users/mtford/Playground/log/log.txt").then(
         (buffer) => {
-          const lines = buffer.toString("utf8").split("\n");
+          const logs = buffer.toString("utf8").split("\n");
           setInterval(() => {
-            const index = random(0, lines.length - 1);
-            const line = lines[index];
+            const index = random(0, logs.length - 1);
+            const log = logs[index];
 
-            this.receive(Buffer.from(line, "utf8"));
+            this.receive(Buffer.from(log, "utf8"));
           }, 1000);
         },
         (err) => {
@@ -58,12 +58,13 @@ export class StdinPublisher extends Publisher<"stdin"> {
 
   receive = (data: Buffer) => {
     const text = data.toString();
-    const [newLine] = this.database.insert([{ path: "stdin", text }]);
+    const [newLine] = this.database.insert([{ source: "stdin", text }]);
     this.publish({
-      __typename: "Line",
+      __typename: "Log",
       rowid: newLine.rowid,
       text: newLine.text,
       timestamp: new Date(newLine.timestamp),
+      source: "stdin",
     }).catch((err) => {
       // TODO: Handle err properly
       console.error(err);
