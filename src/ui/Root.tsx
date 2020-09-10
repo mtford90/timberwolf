@@ -2,7 +2,7 @@ import * as React from "react";
 import { useState } from "react";
 
 import styled from "styled-components";
-import TabStdIn from "./tabs/TabStdIn";
+import LogsTab from "./tabs/LogsTab";
 import FilterInput from "./components/FilterInput";
 
 const RootContainer = styled.div`
@@ -17,7 +17,7 @@ export default function Root() {
 
   return (
     <RootContainer>
-      <TabStdIn filter={filter} />
+      <LogsTab source="stdin" filter={filter} />
       <FilterInput onChangeText={setFilter} />
     </RootContainer>
   );

@@ -3,7 +3,8 @@ import { last } from "lodash";
 import { useReceiveLogs } from "./use-receive-logs";
 import { useParseLogNodes } from "../lib/parse/use-parse-log-nodes";
 
-export function useStdin(
+export function useLogs(
+  source: string,
   filter: string,
   events: {
     onReset: () => void;
@@ -19,7 +20,7 @@ export function useStdin(
     loading,
     hasMore,
   } = useReceiveLogs({
-    source: "stdin",
+    source,
     limit: 100,
     filter,
   });
