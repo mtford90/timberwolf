@@ -41,7 +41,7 @@ export default function LogsTab({
 
   const { scroller, ref } = useScrollController();
 
-  const stdin = useLogs(source, filter, {
+  const logs = useLogs(source, filter, {
     onReset() {
       unseen.clear();
     },
@@ -69,16 +69,16 @@ export default function LogsTab({
     <>
       <Container ref={ref} onScroll={onScroll}>
         <LogRows>
-          {stdin.hasMore && (
+          {logs.hasMore && (
             <button
               type="button"
-              onClick={() => stdin.fetchMore()}
-              disabled={stdin.loadingMore}
+              onClick={() => logs.fetchMore()}
+              disabled={logs.loadingMore}
             >
               Load more
             </button>
           )}
-          {stdin.logs.map((log) => (
+          {logs.logs.map((log) => (
             <LogRow key={log.rowid} row={log} />
           ))}
         </LogRows>

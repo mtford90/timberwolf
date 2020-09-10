@@ -13,7 +13,7 @@ type Query {
     numCpus: Int!
     logs(source: String!, limit: Int!, beforeRowId: Int, filter: String): [Log!]!
     numLogs(source: String!, beforeRowId: Int, filter: String): Int!
-    suggest(prefix: String!, limit: Int, offset: Int): [String!]!
+    suggest(source: String!, prefix: String!, limit: Int, offset: Int): [String!]!
 }
 
 type Subscription {

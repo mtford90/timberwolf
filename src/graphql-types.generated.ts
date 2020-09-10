@@ -50,6 +50,7 @@ export type QueryNumLogsArgs = {
 
 
 export type QuerySuggestArgs = {
+  source: Scalars['String'];
   prefix: Scalars['String'];
   limit?: Maybe<Scalars['Int']>;
   offset?: Maybe<Scalars['Int']>;
@@ -179,7 +180,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   numCpus?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   logs?: Resolver<Array<ResolversTypes['Log']>, ParentType, ContextType, RequireFields<QueryLogsArgs, 'source' | 'limit'>>;
   numLogs?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumLogsArgs, 'source'>>;
-  suggest?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QuerySuggestArgs, 'prefix'>>;
+  suggest?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QuerySuggestArgs, 'source' | 'prefix'>>;
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {

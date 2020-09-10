@@ -18,7 +18,7 @@ export default function Root() {
   return (
     <RootContainer>
       <LogsTab source="stdin" filter={filter} />
-      <FilterInput onChangeText={setFilter} />
+      <FilterInput source="stdin" onChangeText={setFilter} />
     </RootContainer>
   );
 }

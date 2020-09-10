@@ -133,6 +133,7 @@ describe("resolvers", () => {
         const result = resolvers.Query?.suggest?.(
           parent,
           {
+            source: "stdin",
             limit: 20,
             offset: 10,
             prefix: "h",

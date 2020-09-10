@@ -44,8 +44,8 @@ export function initResolvers({
       numLogs(parent, { source, beforeRowId, filter }) {
         return database.numLogs(source, beforeRowId, filter);
       },
-      suggest(parent, { limit, offset, prefix }) {
-        return database.suggest("stdin", prefix, {
+      suggest(parent, { source, limit, offset, prefix }) {
+        return database.suggest(source, prefix, {
           limit: limit || 10,
           offset: offset || 0,
         });
