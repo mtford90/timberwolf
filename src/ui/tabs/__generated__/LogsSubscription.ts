@@ -19,6 +19,6 @@ export interface LogsSubscription {
 }
 
 export interface LogsSubscriptionVariables {
-  source: string;
+  source?: string | null;
   filter?: string | null;
 }

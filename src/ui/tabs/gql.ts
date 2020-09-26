@@ -1,7 +1,7 @@
 import gql from "graphql-tag";
 
 export const LOGS_SUBSCRIPTION = gql`
-  subscription LogsSubscription($source: String!, $filter: String) {
+  subscription LogsSubscription($source: String, $filter: String) {
     logs(source: $source, filter: $filter) {
       rowid
       timestamp

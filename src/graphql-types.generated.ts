@@ -29,6 +29,7 @@ export type Query = {
   __typename: 'Query';
   numCpus: Scalars['Int'];
   logs: Array<Log>;
+  source: Array<Scalars['String']>;
   numLogs: Scalars['Int'];
   suggest: Array<Scalars['String']>;
 };
@@ -63,7 +64,7 @@ export type Subscription = {
 
 
 export type SubscriptionLogsArgs = {
-  source: Scalars['String'];
+  source?: Maybe<Scalars['String']>;
   filter?: Maybe<Scalars['String']>;
 };
 
@@ -179,12 +180,13 @@ export type LogResolvers<ContextType = any, ParentType extends ResolversParentTy
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   numCpus?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   logs?: Resolver<Array<ResolversTypes['Log']>, ParentType, ContextType, RequireFields<QueryLogsArgs, 'source' | 'limit'>>;
+  source?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   numLogs?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumLogsArgs, 'source'>>;
   suggest?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QuerySuggestArgs, 'source' | 'prefix'>>;
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
-  logs?: SubscriptionResolver<ResolversTypes['Log'], "logs", ParentType, ContextType, RequireFields<SubscriptionLogsArgs, 'source'>>;
+  logs?: SubscriptionResolver<ResolversTypes['Log'], "logs", ParentType, ContextType, RequireFields<SubscriptionLogsArgs, never>>;
 };
 
 export type Resolvers<ContextType = any> = {

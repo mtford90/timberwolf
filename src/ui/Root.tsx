@@ -4,6 +4,7 @@ import { useState } from "react";
 import styled from "styled-components";
 import LogsTab from "./tabs/LogsTab";
 import FilterInput from "./components/FilterInput";
+import { useTabs } from "./tabs/use-tabs";
 
 const RootContainer = styled.div`
   width: 100vw;
@@ -14,8 +15,8 @@ const RootContainer = styled.div`
 
 export default function Root() {
   const [filter, setFilter] = useState("");
-  const [tabs] = useState(["stdin"]);
-  const [selectedTab, setSelectedTab] = useState("stdin");
+
+  const { tabs, setSelectedTab, selectedTab } = useTabs();
 
   return (
     <RootContainer>
@@ -27,7 +28,7 @@ export default function Root() {
             </button>
           ))}
         </div>
-        <LogsTab source={selectedTab} filter={filter} />
+        {selectedTab && <LogsTab source={selectedTab} filter={filter} />}
         <FilterInput source="stdin" onChangeText={setFilter} />
       </>
     </RootContainer>

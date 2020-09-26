@@ -160,6 +160,15 @@ export class Database {
     return this.db.prepare(sql).get().n;
   }
 
+  sources() {
+    const sql = `SELECT DISTINCT source FROM logs`;
+
+    return this.db
+      .prepare(sql)
+      .all()
+      .map((r) => r.source);
+  }
+
   clear(source: string) {
     this.db.exec(`DELETE FROM logs WHERE source = '${source}'`);
   }

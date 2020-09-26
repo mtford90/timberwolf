@@ -41,6 +41,9 @@ export function initResolvers({
 
         return logs;
       },
+      source() {
+        return database.sources();
+      },
       numLogs(parent, { source, beforeRowId, filter }) {
         return database.numLogs(source, beforeRowId, filter);
       },
@@ -55,19 +58,24 @@ export function initResolvers({
     Subscription: {
       logs: {
         subscribe: withFilter(
-          (parent, { source }) => {
-            if (source !== "stdin") {
-              throw new Error(`Unknown source ${source}`);
-            }
-            return publishers.stdin.asyncIterator();
+          () => {
+            return publishers.logs.asyncIterator();
           },
           (
             payload: Pick<Subscription, "logs">,
             variables: SubscriptionLogsArgs
           ) => {
-            return variables.filter
-              ? payload.logs.text.indexOf(variables.filter) > -1
-              : true;
+            if (variables.filter) {
+              const match = payload.logs.text.indexOf(variables.filter) > -1;
+              if (!match) return false;
+            }
+
+            if (variables.source) {
+              const match = payload.logs.source === variables.source;
+              if (!match) return false;
+            }
+
+            return true;
           }
         ),
       },

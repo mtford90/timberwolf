@@ -35,7 +35,6 @@ export class LogsPublisher extends Publisher<"logs"> {
   init() {
     this.stdin.resume();
     this.stdin.setEncoding("utf8");
-
     this.stdin.on("data", this.receiveStdin);
     this.websocketServer?.on("message", this.receiveWebsocketMessage);
     this.mockStdIn();

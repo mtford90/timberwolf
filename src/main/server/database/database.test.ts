@@ -193,6 +193,16 @@ describe("database", () => {
         });
       });
     });
+
+    describe("sources", () => {
+      it("should return all sources", async () => {
+        const sources = db.sources();
+        expect(sources).toHaveLength(3);
+        expect(sources).toContain("/Users/mtford/Playground/log/log2.txt");
+        expect(sources).toContain("/another/path");
+        expect(sources).toContain("/Users/mtford/Playground/log/log.txt");
+      });
+    });
   });
 
   describe("suggestions", () => {

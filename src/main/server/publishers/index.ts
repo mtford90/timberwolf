@@ -10,7 +10,7 @@ export function initPublishers(
   const pubSub = new PubSub();
 
   return {
-    stdin: new LogsPublisher({ pubSub, database, websocketServer }),
+    logs: new LogsPublisher({ pubSub, database, websocketServer }),
   };
 }
 

@@ -26,7 +26,7 @@ describe("resolvers", () => {
         expect(response).toMatchInlineSnapshot(`4`);
       });
     });
-    describe("stdin", () => {
+    describe("logs", () => {
       describe("without filter", () => {
         const mockLines = [
           {
@@ -161,19 +161,19 @@ describe("resolvers", () => {
           const resolvers = initResolvers(
             deepMock<ResolverDependencies>({
               publishers: {
-                stdin: {
+                logs: {
                   asyncIterator() {
-                    return pubSub.asyncIterator("stdin");
+                    return pubSub.asyncIterator("logs");
                   },
                 },
               },
             })
           );
 
-          const stdin = resolvers.Subscription?.logs;
+          const logs = resolvers.Subscription?.logs;
 
-          if (typeof stdin === "object") {
-            const iterator: AsyncIterator<{ stdin: string }> = stdin.subscribe(
+          if (typeof logs === "object") {
+            const iterator: AsyncIterator<{ stdin: string }> = logs.subscribe(
               parent,
               {
                 source: "stdin",
@@ -182,7 +182,12 @@ describe("resolvers", () => {
               resolveInfo
             ) as AsyncIterator<{ stdin: string }>;
 
-            const payload = { stdin: "blah" };
+            const payload = {
+              logs: {
+                source: "stdin",
+                text: "hi",
+              },
+            };
 
             iterator
               .next()
@@ -192,7 +197,7 @@ describe("resolvers", () => {
               })
               .catch(done);
 
-            pubSub.publish("stdin", payload).catch(done);
+            pubSub.publish("logs", payload).catch(done);
           } else {
             throw new Error("Expected stdin to be a subscription object");
           }
@@ -204,9 +209,9 @@ describe("resolvers", () => {
           const resolvers = initResolvers(
             deepMock<ResolverDependencies>({
               publishers: {
-                stdin: {
+                logs: {
                   asyncIterator() {
-                    return pubSub.asyncIterator("stdin");
+                    return pubSub.asyncIterator("logs");
                   },
                 },
               },
@@ -254,8 +259,8 @@ describe("resolvers", () => {
               })
               .catch(done);
 
-            pubSub.publish("stdin", filteredPayload).catch(done);
-            pubSub.publish("stdin", matchingPayload).catch(done);
+            pubSub.publish("logs", filteredPayload).catch(done);
+            pubSub.publish("logs", matchingPayload).catch(done);
           } else {
             throw new Error("Expected stdin to be a subscription object");
           }
