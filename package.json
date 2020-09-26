@@ -102,7 +102,8 @@
     "style-loader": "^1.2.1",
     "ts-jest": "^26.1.4",
     "typescript": "^3.8.2",
-    "webpack-graphql-loader": "^1.0.2"
+    "webpack-graphql-loader": "^1.0.2",
+    "@types/ws": "^7.2.6"
   },
   "dependencies": {
     "@apollo/client": "^3.1.2",
@@ -129,6 +130,7 @@
     "graphql-subscriptions": "^1.1.0",
     "graphql-tag": "^2.11.0",
     "graphql-tools": "^6.0.16",
+    "joi": "^17.2.1",
     "lodash": "^4.17.11",
     "mobx": "^5.15.5",
     "mobx-react-lite": "^2.0.7",
@@ -147,6 +149,7 @@
     "ts-essentials": "^7.0.0",
     "utility-types": "^3.10.0",
     "uuid": "^8.2.0",
+    "ws": "^7.3.1",
     "xregexp": "^4.3.0"
   }
 }

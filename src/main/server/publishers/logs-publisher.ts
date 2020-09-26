@@ -3,6 +3,8 @@ import fs from "mz/fs";
 import { random } from "lodash";
 import { Publisher } from "./publisher";
 import { Database } from "../database";
+import { WebsocketServer } from "../websockets";
+import { WebsocketMessage } from "../websockets/validation";
 
 export type StdinReadStream = typeof process.stdin;
 
@@ -11,25 +13,31 @@ export class LogsPublisher extends Publisher<"logs"> {
 
   private database: Database;
 
+  private websocketServer?: WebsocketServer;
+
   constructor({
     pubSub,
     database,
     stdin = process.stdin,
+    websocketServer,
   }: {
     pubSub: PubSub;
     database: Database;
     stdin?: StdinReadStream;
+    websocketServer?: WebsocketServer;
   }) {
     super("logs", pubSub);
     this.stdin = stdin;
     this.database = database;
+    this.websocketServer = websocketServer;
   }
 
   init() {
     this.stdin.resume();
     this.stdin.setEncoding("utf8");
 
-    this.stdin.on("data", this.receive);
+    this.stdin.on("data", this.receiveStdin);
+    this.websocketServer?.on("message", this.receiveWebsocketMessage);
     this.mockStdIn();
   }
 
@@ -46,7 +54,7 @@ export class LogsPublisher extends Publisher<"logs"> {
             const index = random(0, logs.length - 1);
             const log = logs[index];
 
-            this.receive(Buffer.from(log, "utf8"));
+            this.receiveStdin(Buffer.from(log, "utf8"));
           }, 1000);
         },
         (err) => {
@@ -56,7 +64,7 @@ export class LogsPublisher extends Publisher<"logs"> {
     }
   }
 
-  receive = (data: Buffer) => {
+  private receiveStdin = (data: Buffer) => {
     const text = data.toString();
     const [newLine] = this.database.insert([{ source: "stdin", text }]);
     this.publish({
@@ -71,7 +79,31 @@ export class LogsPublisher extends Publisher<"logs"> {
     });
   };
 
+  private receiveWebsocketMessage = (message: WebsocketMessage) => {
+    const [newLine] = this.database.insert([
+      {
+        source: `ws/${message.name}`,
+        text: message.text,
+        timestamp: message.timestamp,
+      },
+    ]);
+
+    const source = `ws/${message.name}`;
+
+    this.publish({
+      __typename: "Log",
+      rowid: newLine.rowid,
+      text: message.text,
+      timestamp: message.timestamp,
+      source,
+    }).catch((err) => {
+      // TODO: Handle err properly
+      console.error(err);
+    });
+  };
+
   dispose() {
-    this.stdin.off("data", this.receive);
+    this.stdin.off("data", this.receiveStdin);
+    this.websocketServer?.off("message", this.receiveWebsocketMessage);
   }
 }

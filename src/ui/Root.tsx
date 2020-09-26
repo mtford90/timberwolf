@@ -14,11 +14,22 @@ const RootContainer = styled.div`
 
 export default function Root() {
   const [filter, setFilter] = useState("");
+  const [tabs] = useState(["stdin"]);
+  const [selectedTab, setSelectedTab] = useState("stdin");
 
   return (
     <RootContainer>
-      <LogsTab source="stdin" filter={filter} />
-      <FilterInput source="stdin" onChangeText={setFilter} />
+      <>
+        <div>
+          {tabs.map((tab) => (
+            <button type="button" onClick={() => setSelectedTab(tab)}>
+              {tab}
+            </button>
+          ))}
+        </div>
+        <LogsTab source={selectedTab} filter={filter} />
+        <FilterInput source="stdin" onChangeText={setFilter} />
+      </>
     </RootContainer>
   );
 }

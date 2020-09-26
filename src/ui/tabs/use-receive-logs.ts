@@ -66,8 +66,10 @@ export function useReceiveLogs({
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data) return prev;
 
+        const previous = prev.logs || [];
+
         return {
-          logs: [subscriptionData.data.logs, ...prev.logs],
+          logs: [subscriptionData.data.logs, ...previous],
         };
       },
       variables: {
