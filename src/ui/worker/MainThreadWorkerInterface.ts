@@ -2,7 +2,6 @@ import PromiseWorker from "promise-worker";
 import genericPool, { Pool } from "generic-pool-browser";
 import { getRows } from "./parse";
 import { Log } from "../lib/parse/types";
-import { createWorker } from "./TimberwolfWorker";
 
 export default class MainThreadWorkerInterface {
   private pool: Pool<Worker>;
@@ -13,7 +12,20 @@ export default class MainThreadWorkerInterface {
     this.pool = genericPool.createPool(
       {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        create: async () => createWorker(),
+        create: async () => {
+          // TODO: This is unfortunate...
+          // ...in dev mode, the worker is served via webpack from /worker/index.js. In prod mode it's served from file:///main_window so the ".." is required
+          const nodeEnv = process.env.NODE_ENV;
+
+          console.log(nodeEnv);
+
+          const workerURL =
+            nodeEnv === "development"
+              ? "worker/index.js"
+              : "../worker/index.js";
+
+          return new Worker(workerURL);
+        },
         destroy: async (worker: Worker) => {
           await worker.terminate();
         },
