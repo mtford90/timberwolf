@@ -82,6 +82,18 @@ describe("logs publisher", () => {
           { text: "testing", source: "stdin" },
         ]);
       });
+
+      it("should split into multiple logs with new lines", async () => {
+        const incoming = "my log\nmy second log";
+        stdinEmitter.emit("data", Buffer.from(incoming, "utf8"));
+        expect(database.insert).toHaveBeenCalledTimes(2);
+        expect(database.insert).toHaveBeenCalledWith([
+          { text: "my log", source: "stdin" },
+        ]);
+        expect(database.insert).toHaveBeenCalledWith([
+          { text: "my second log", source: "stdin" },
+        ]);
+      });
     });
 
     describe("from websocket", () => {

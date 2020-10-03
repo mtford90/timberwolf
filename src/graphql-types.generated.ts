@@ -59,7 +59,7 @@ export type QuerySuggestArgs = {
 
 export type Subscription = {
   __typename: 'Subscription';
-  logs: Log;
+  logs: Array<Log>;
 };
 
 
@@ -186,7 +186,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
-  logs?: SubscriptionResolver<ResolversTypes['Log'], "logs", ParentType, ContextType, RequireFields<SubscriptionLogsArgs, never>>;
+  logs?: SubscriptionResolver<Array<ResolversTypes['Log']>, "logs", ParentType, ContextType, RequireFields<SubscriptionLogsArgs, never>>;
 };
 
 export type Resolvers<ContextType = any> = {

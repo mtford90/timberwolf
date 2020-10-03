@@ -5,6 +5,7 @@ import { Publisher } from "./publisher";
 import { Database } from "../database";
 import { WebsocketServer } from "../websockets";
 import { WebsocketMessage } from "../websockets/validation";
+import { splitText } from "./split";
 
 export type StdinReadStream = typeof process.stdin;
 
@@ -64,8 +65,12 @@ export class LogsPublisher extends Publisher<"logs"> {
   }
 
   private receiveStdin = (data: Buffer) => {
-    const text = data.toString();
-    const [newLine] = this.database.insert([{ source: "stdin", text }]);
+    const incoming = data.toString();
+    const split = splitText(incoming);
+    split.forEach(() => {});
+    const [newLine] = this.database.insert([
+      { source: "stdin", text: incoming },
+    ]);
     this.publish({
       __typename: "Log",
       rowid: newLine.rowid,
