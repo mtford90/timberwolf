@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "path";
 import { values } from "lodash";
 import {
-  initialiseGqlIpcExecutor,
+  initialGraphqlIpc,
   createApolloSchemaLink,
 } from "../../common/gql-transport";
 import { initPublishers } from "./publishers";
@@ -46,7 +46,7 @@ export default function configureServer({
     }),
   });
 
-  initialiseGqlIpcExecutor({ link, ipc: ipcMain });
+  initialGraphqlIpc({ link, ipc: ipcMain });
 
   return { publishers };
 }

@@ -94,7 +94,7 @@ export const createApolloSchemaLink = <TRoot = any>(options: SchemaLinkOptions) 
   return new ApolloLink((request) => createObservable(request));
 };
 
-export const initialiseGqlIpcExecutor = (options: IpcExecutorOptions) => {
+export const initialGraphqlIpc = (options: IpcExecutorOptions) => {
   const channel = options.channel || "graphql";
   const subscriptions = new Map<string, ReturnType<typeof Observable.prototype.subscribe>>();
 
