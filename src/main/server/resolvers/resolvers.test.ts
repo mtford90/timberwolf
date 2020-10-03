@@ -1,6 +1,6 @@
 import { GraphQLResolveInfo } from "graphql";
 import { PubSub } from "graphql-subscriptions";
-import { initResolvers, ResolverDependencies } from "./index";
+import { initialiseGQLResolvers, ResolverDependencies } from "./index";
 import { deepMock } from "../../../../tests/util";
 import { Subscription } from "../../../graphql-types.generated";
 
@@ -14,7 +14,7 @@ describe("resolvers", () => {
   describe("query", () => {
     describe("numCpus", () => {
       it("should return the number of cpus", async () => {
-        const resolvers = initResolvers(deepMock<ResolverDependencies>({}));
+        const resolvers = initialiseGQLResolvers(deepMock<ResolverDependencies>({}));
 
         const response = resolvers.Query?.numCpus?.(
           parent,
@@ -26,12 +26,12 @@ describe("resolvers", () => {
         expect(response).toMatchInlineSnapshot(`4`);
       });
     });
-    describe("stdin", () => {
+    describe("logs", () => {
       describe("without filter", () => {
         const mockLines = [
           {
             rowid: 1,
-            path: "/path/to/something",
+            source: "/path/to/something",
             timestamp: 343,
             text: "xy",
           },
@@ -39,34 +39,35 @@ describe("resolvers", () => {
 
         const deps = deepMock<ResolverDependencies>({
           database: {
-            lines: jest.fn(() => mockLines),
+            logs: jest.fn(() => mockLines),
           },
         });
 
-        const resolvers = initResolvers(deps);
+        const resolvers = initialiseGQLResolvers(deps);
 
-        const response = resolvers.Query?.stdin?.(
+        const response = resolvers.Query?.logs?.(
           parent,
-          { limit: 10, beforeRowId: 10 },
+          { limit: 10, beforeRowId: 10, source: "stdin" },
           context,
           resolveInfo
         );
 
-        it("should return the lines from the db", async () => {
+        it("should return the logs from the db", async () => {
           expect(response).toMatchInlineSnapshot(`
-          Array [
-            Object {
-              "__typename": "Line",
-              "rowid": 1,
-              "text": "xy",
-              "timestamp": 1970-01-01T00:00:00.343Z,
-            },
-          ]
-        `);
+            Array [
+              Object {
+                "__typename": "Log",
+                "rowid": 1,
+                "source": "stdin",
+                "text": "xy",
+                "timestamp": 1970-01-01T00:00:00.343Z,
+              },
+            ]
+          `);
         });
 
         it("should call with the correct params", async () => {
-          expect(deps.database.lines).toBeCalledWith("stdin", {
+          expect(deps.database.logs).toBeCalledWith("stdin", {
             limit: 10,
             beforeRowId: 10,
           });
@@ -76,7 +77,7 @@ describe("resolvers", () => {
         const mockLines = [
           {
             rowid: 1,
-            path: "/path/to/something",
+            source: "/path/to/something",
             timestamp: 343,
             text: "xy",
           },
@@ -84,34 +85,35 @@ describe("resolvers", () => {
 
         const deps = deepMock<ResolverDependencies>({
           database: {
-            lines: jest.fn(() => mockLines),
+            logs: jest.fn(() => mockLines),
           },
         });
 
-        const resolvers = initResolvers(deps);
+        const resolvers = initialiseGQLResolvers(deps);
 
-        const response = resolvers.Query?.stdin?.(
+        const response = resolvers.Query?.logs?.(
           parent,
-          { limit: 10, beforeRowId: 10, filter: "yo" },
+          { limit: 10, beforeRowId: 10, filter: "yo", source: "stdin" },
           context,
           resolveInfo
         );
 
-        it("should return the lines from the db", async () => {
+        it("should return the logs from the db", async () => {
           expect(response).toMatchInlineSnapshot(`
-          Array [
-            Object {
-              "__typename": "Line",
-              "rowid": 1,
-              "text": "xy",
-              "timestamp": 1970-01-01T00:00:00.343Z,
-            },
-          ]
-        `);
+            Array [
+              Object {
+                "__typename": "Log",
+                "rowid": 1,
+                "source": "stdin",
+                "text": "xy",
+                "timestamp": 1970-01-01T00:00:00.343Z,
+              },
+            ]
+          `);
         });
 
         it("should call with the correct params", async () => {
-          expect(deps.database.lines).toBeCalledWith("stdin", {
+          expect(deps.database.logs).toBeCalledWith("stdin", {
             limit: 10,
             filter: "yo",
             beforeRowId: 10,
@@ -127,10 +129,11 @@ describe("resolvers", () => {
           },
         });
 
-        const resolvers = initResolvers(deps);
+        const resolvers = initialiseGQLResolvers(deps);
         const result = resolvers.Query?.suggest?.(
           parent,
           {
+            source: "stdin",
             limit: 20,
             offset: 10,
             prefix: "h",
@@ -155,29 +158,36 @@ describe("resolvers", () => {
 
       describe("with no filter", () => {
         it("should emit a payload", (done) => {
-          const resolvers = initResolvers(
+          const resolvers = initialiseGQLResolvers(
             deepMock<ResolverDependencies>({
               publishers: {
-                stdin: {
+                logs: {
                   asyncIterator() {
-                    return pubSub.asyncIterator("stdin");
+                    return pubSub.asyncIterator("logs");
                   },
                 },
               },
             })
           );
 
-          const stdin = resolvers.Subscription?.stdin;
+          const logs = resolvers.Subscription?.logs;
 
-          if (typeof stdin === "object") {
-            const iterator: AsyncIterator<{ stdin: string }> = stdin.subscribe(
+          if (typeof logs === "object") {
+            const iterator: AsyncIterator<{ stdin: string }> = logs.subscribe(
               parent,
-              {},
+              {
+                source: "stdin",
+              },
               context,
               resolveInfo
             ) as AsyncIterator<{ stdin: string }>;
 
-            const payload = { stdin: "blah" };
+            const payload = {
+              logs: {
+                source: "stdin",
+                text: "hi",
+              },
+            };
 
             iterator
               .next()
@@ -187,7 +197,7 @@ describe("resolvers", () => {
               })
               .catch(done);
 
-            pubSub.publish("stdin", payload).catch(done);
+            pubSub.publish("logs", payload).catch(done);
           } else {
             throw new Error("Expected stdin to be a subscription object");
           }
@@ -196,45 +206,48 @@ describe("resolvers", () => {
 
       describe("with a filter", () => {
         it("should only emit matching payloads", (done) => {
-          const resolvers = initResolvers(
+          const resolvers = initialiseGQLResolvers(
             deepMock<ResolverDependencies>({
               publishers: {
-                stdin: {
+                logs: {
                   asyncIterator() {
-                    return pubSub.asyncIterator("stdin");
+                    return pubSub.asyncIterator("logs");
                   },
                 },
               },
             })
           );
 
-          const stdin = resolvers.Subscription?.stdin;
+          const stdin = resolvers.Subscription?.logs;
 
           if (typeof stdin === "object") {
             const iterator = stdin.subscribe(
               parent,
               {
+                source: "stdin",
                 filter: "bl",
               },
               context,
               resolveInfo
-            ) as AsyncIterator<Pick<Subscription, "stdin">>;
+            ) as AsyncIterator<Pick<Subscription, "logs">>;
 
-            const filteredPayload: Pick<Subscription, "stdin"> = {
-              stdin: {
-                __typename: "Line",
+            const filteredPayload: Pick<Subscription, "logs"> = {
+              logs: {
+                __typename: "Log",
                 text: "123",
                 timestamp: 0,
                 rowid: 1,
+                source: "stdin",
               },
             };
 
-            const matchingPayload: Pick<Subscription, "stdin"> = {
-              stdin: {
-                __typename: "Line",
+            const matchingPayload: Pick<Subscription, "logs"> = {
+              logs: {
+                __typename: "Log",
                 text: "blah",
                 timestamp: 0,
                 rowid: 2,
+                source: "stdin",
               },
             };
 
@@ -246,8 +259,8 @@ describe("resolvers", () => {
               })
               .catch(done);
 
-            pubSub.publish("stdin", filteredPayload).catch(done);
-            pubSub.publish("stdin", matchingPayload).catch(done);
+            pubSub.publish("logs", filteredPayload).catch(done);
+            pubSub.publish("logs", matchingPayload).catch(done);
           } else {
             throw new Error("Expected stdin to be a subscription object");
           }

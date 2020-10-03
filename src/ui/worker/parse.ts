@@ -1,18 +1,18 @@
 import { v4 as guid } from "uuid";
 import { matchJSON } from "../lib/parse/json";
 import { Row } from "../components/LogRow";
-import { Line } from "../../graphql-types.generated";
+import { Log } from "../../graphql-types.generated";
 
-function getRow(line: Line): Row {
-  const logNodes = matchJSON(line.text);
+function getRow(log: Log): Row {
+  const logNodes = matchJSON(log.text);
 
   return {
-    ...line,
+    ...log,
     nodes: logNodes.map((node) => ({ ...node, id: guid() })),
   };
 }
 
-export const getRows = (message: Line[]) => {
+export const getRows = (message: Log[]) => {
   if (!message) {
     throw new Error("No message passed");
   }

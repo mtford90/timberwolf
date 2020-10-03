@@ -4,9 +4,9 @@
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL query operation: NumLines
+// GraphQL query operation: SourcesQuery
 // ====================================================
 
-export interface NumLines {
-  numLines: number;
+export interface SourcesQuery {
+  source: string[];
 }

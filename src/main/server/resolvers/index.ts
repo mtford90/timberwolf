@@ -3,8 +3,8 @@ import { GraphQLDateTime, GraphQLDate, GraphQLTime } from "graphql-iso-date";
 import { withFilter } from "graphql-subscriptions";
 import {
   Resolvers,
-  SubscriptionStdinArgs,
   Subscription,
+  SubscriptionLogsArgs,
 } from "../../../graphql-types.generated";
 import { Publishers } from "../publishers";
 import { Database } from "../database";
@@ -14,7 +14,7 @@ export type ResolverDependencies = {
   database: Database;
 };
 
-export function initResolvers({
+export function initialiseGQLResolvers({
   publishers,
   database,
 }: ResolverDependencies): Resolvers {
@@ -26,25 +26,29 @@ export function initResolvers({
       numCpus() {
         return os.cpus().length;
       },
-      stdin(parent, { limit, beforeRowId, filter }) {
-        const lines = database
-          .lines("stdin", { limit, beforeRowId, filter })
+      logs(parent, { source, limit, beforeRowId, filter }) {
+        const logs = database
+          .logs(source, { limit, beforeRowId, filter })
           .map((res) => ({
-            __typename: "Line" as const,
+            __typename: "Log" as const,
             timestamp: new Date(res.timestamp),
             rowid: res.rowid,
             text: res.text,
+            source,
           }));
 
-        console.log("stdin", { limit, beforeRowId, filter }, lines.length);
+        console.log("stdin", { limit, beforeRowId, filter }, logs.length);
 
-        return lines;
+        return logs;
       },
-      numLines(parent, { beforeRowId, filter }) {
-        return database.numLines("stdin", beforeRowId, filter);
+      source() {
+        return database.sources();
       },
-      suggest(parent, { limit, offset, prefix }) {
-        return database.suggest("stdin", prefix, {
+      numLogs(parent, { source, beforeRowId, filter }) {
+        return database.numLogs(source, beforeRowId, filter);
+      },
+      suggest(parent, { source, limit, offset, prefix }) {
+        return database.suggest(source, prefix, {
           limit: limit || 10,
           offset: offset || 0,
         });
@@ -52,16 +56,26 @@ export function initResolvers({
     },
 
     Subscription: {
-      stdin: {
+      logs: {
         subscribe: withFilter(
-          () => publishers.stdin.asyncIterator(),
+          () => {
+            return publishers.logs.asyncIterator();
+          },
           (
-            payload: Pick<Subscription, "stdin">,
-            variables: SubscriptionStdinArgs
+            payload: Pick<Subscription, "logs">,
+            variables: SubscriptionLogsArgs
           ) => {
-            return variables.filter
-              ? payload.stdin.text.indexOf(variables.filter) > -1
-              : true;
+            if (variables.filter) {
+              const match = payload.logs.text.indexOf(variables.filter) > -1;
+              if (!match) return false;
+            }
+
+            if (variables.source) {
+              const match = payload.logs.source === variables.source;
+              if (!match) return false;
+            }
+
+            return true;
           }
         ),
       },

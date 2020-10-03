@@ -1,5 +1,5 @@
 import sqlite, { Database as SqliteDatabase } from "better-sqlite3";
-import { compact, uniq, groupBy, flatten, keys } from "lodash";
+import { compact, groupBy, flatten, keys } from "lodash";
 
 export class Database {
   private db: SqliteDatabase;
@@ -13,27 +13,27 @@ export class Database {
       `
       CREATE TABLE IF NOT EXISTS logs
       (
-          path      text NOT NULL,
+          source      text NOT NULL,
           timestamp integer NOT NULL,
           text      text NOT NULL
       );
       
-      CREATE INDEX IF NOT EXISTS idx_path
-      ON logs(path);
+      CREATE INDEX IF NOT EXISTS idx_source
+      ON logs(source);
       
       CREATE INDEX IF NOT EXISTS idx_timestamp
       ON logs(timestamp);
             
       CREATE TABLE IF NOT EXISTS words
       (
-        path      text NOT NULL,
+        source      text NOT NULL,
         text      text NOT NULL,
         num       integer NOT NULL,
-        UNIQUE(path,text)
+        UNIQUE(source,text)
       );
       
-      CREATE INDEX IF NOT EXISTS idx_words_path
-      ON words(path);
+      CREATE INDEX IF NOT EXISTS idx_words_source
+      ON words(source);
       
       CREATE INDEX IF NOT EXISTS idx_words_text
       ON words(text);
@@ -44,35 +44,35 @@ export class Database {
     );
   }
 
-  private insertWords(path: string, words: string[]) {
+  private insertWords(source: string, words: string[]) {
     const upsert = this.db.prepare(
-      `INSERT INTO words(path, text, num) VALUES(@path,@text,1)
-    ON CONFLICT(path,text) DO UPDATE SET num=num+1;`
+      `INSERT INTO words(source, text, num) VALUES(@source,@text,1)
+    ON CONFLICT(source,text) DO UPDATE SET num=num+1;`
     );
 
-    words.forEach((word) => upsert.run({ path, text: word }));
+    words.forEach((word) => upsert.run({ source, text: word }));
   }
 
-  insert(rows: Array<{ path: string; timestamp?: number; text: string }>) {
+  insert(rows: Array<{ source: string; timestamp?: number; text: string }>) {
     const stmt = this.db.prepare(
-      "INSERT INTO logs (path, timestamp, text) VALUES (?,?,?)"
+      "INSERT INTO logs (source, timestamp, text) VALUES (?,?,?)"
     );
 
-    const rowIds = rows.map(({ path, timestamp, text }) => {
-      return stmt.run(path, timestamp || Date.now(), text)
+    const rowIds = rows.map(({ source, timestamp, text }) => {
+      return stmt.run(source, timestamp || Date.now(), text)
         .lastInsertRowid as number;
     });
     const entries = this.getWords(rows);
 
-    entries.forEach(([path, words]) => {
-      this.insertWords(path, words);
+    entries.forEach(([source, words]) => {
+      this.insertWords(source, words);
     });
 
     return this.getMany(compact(rowIds));
   }
 
   private getWords(
-    rows: Array<{ path: string; timestamp?: number; text: string }>
+    rows: Array<{ source: string; timestamp?: number; text: string }>
   ) {
     const grouped = groupBy(
       rows.map((r) => {
@@ -82,21 +82,21 @@ export class Database {
         );
 
         return {
-          path: r.path,
+          source: r.source,
           words: [
             ...withoutSymbols.split(/\s/g),
             ...r.text.split(/(?!\(.*)\s(?![^(]*?\))/g),
           ],
         };
       }),
-      (r) => r.path
+      (r) => r.source
     );
 
     const entries: [string, string[]][] = [];
 
-    keys(grouped).forEach((path) => {
-      const words = compact(flatten(grouped[path].map((g) => g.words)));
-      entries.push([path, words]);
+    keys(grouped).forEach((source) => {
+      const words = compact(flatten(grouped[source].map((g) => g.words)));
+      entries.push([source, words]);
     });
 
     return entries;
@@ -105,9 +105,9 @@ export class Database {
   getMany(
     rowIds: number[],
     opts: {
-      fields?: Array<"rowid" | "path" | "timestamp" | "text">;
+      fields?: Array<"rowid" | "source" | "timestamp" | "text">;
     } = {}
-  ): Array<{ rowid: number; path: string; timestamp: number; text: string }> {
+  ): Array<{ rowid: number; source: string; timestamp: number; text: string }> {
     const rowIdsList = `(${rowIds.join(",")})`;
 
     return this.db
@@ -117,15 +117,15 @@ export class Database {
       .all();
   }
 
-  lines(
-    path: string,
+  logs(
+    source: string,
     opts: {
       filter?: string | null;
       beforeRowId?: number | null;
       limit?: number;
-      fields?: Array<"rowid" | "path" | "timestamp" | "text">;
+      fields?: Array<"rowid" | "source" | "timestamp" | "text">;
     } = {}
-  ): Array<{ rowid: number; path: string; timestamp: number; text: string }> {
+  ): Array<{ rowid: number; source: string; timestamp: number; text: string }> {
     const { beforeRowId } = opts;
     const limit = opts.limit || 10;
     const fields = this.getFields(opts);
@@ -136,7 +136,7 @@ export class Database {
       WHERE
       ${beforeRowId ? `rowid < ${beforeRowId} AND` : ""}
       ${opts.filter ? `text LIKE '%${opts.filter}%' AND` : ""}
-      path = '${path}'
+      source = '${source}'
       ORDER BY rowid desc
       LIMIT  ${limit}
     `;
@@ -145,23 +145,32 @@ export class Database {
   }
 
   private getFields(opts: {
-    fields?: Array<"rowid" | "path" | "timestamp" | "text">;
+    fields?: Array<"rowid" | "source" | "timestamp" | "text">;
   }) {
-    return (opts.fields || ["rowid", "path", "timestamp", "text"]).join(",");
+    return (opts.fields || ["rowid", "source", "timestamp", "text"]).join(",");
   }
 
-  numLines(path: string, rowId?: number | null, filter?: string | null) {
+  numLogs(source: string, rowId?: number | null, filter?: string | null) {
     let sql = `SELECT COUNT(*) as n FROM logs WHERE ${
       filter ? `text LIKE '%${filter}%' AND` : ""
-    } path = '${path}'`;
+    } source = '${source}'`;
     if (rowId) {
       sql += ` AND rowid < ${rowId}`;
     }
     return this.db.prepare(sql).get().n;
   }
 
-  clear(path: string) {
-    this.db.exec(`DELETE FROM logs WHERE path = '${path}'`);
+  sources() {
+    const sql = `SELECT DISTINCT source FROM logs`;
+
+    return this.db
+      .prepare(sql)
+      .all()
+      .map((r) => r.source);
+  }
+
+  clear(source: string) {
+    this.db.exec(`DELETE FROM logs WHERE source = '${source}'`);
   }
 
   clearAll() {
@@ -173,17 +182,17 @@ export class Database {
   }
 
   suggest(
-    path: string,
+    source: string,
     prefix: string,
     { limit = 10, offset = 0 }: { limit?: number; offset?: number } = {}
   ) {
     const query = this.db.prepare(
-      `SELECT path,text,num FROM words WHERE text LIKE '${prefix}%' AND path = '${path}' ORDER BY num DESC LIMIT ${limit} OFFSET ${offset}`
+      `SELECT source,text,num FROM words WHERE text LIKE '${prefix}%' AND source = '${source}' ORDER BY num DESC LIMIT ${limit} OFFSET ${offset}`
     );
 
     const suggestions = query.all().map((r) => r.text);
 
-    if (suggestions[0]?.toLowerCase() === prefix) {
+    if (suggestions[0]?.toLowerCase() === prefix.toLowerCase()) {
       suggestions.shift();
     }
 

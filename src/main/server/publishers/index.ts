@@ -1,12 +1,16 @@
 import { PubSub } from "graphql-subscriptions";
-import { StdinPublisher } from "./stdin-publisher";
+import { LogsPublisher } from "./logs-publisher";
 import { Database } from "../database";
+import { WebsocketServer } from "../websockets";
 
-export function initPublishers(database: Database) {
+export function initPublishers(
+  database: Database,
+  websocketServer: WebsocketServer
+) {
   const pubSub = new PubSub();
 
   return {
-    stdin: new StdinPublisher({ pubSub, database }),
+    logs: new LogsPublisher({ pubSub, database, websocketServer }),
   };
 }
 

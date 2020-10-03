@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { LogNode, LogNodeType } from "../lib/parse/json";
 import { TextNode } from "./TextNode";
 import { JsonNode } from "./JSON";
-import { Line } from "../../graphql-types.generated";
+import { Log } from "../../graphql-types.generated";
 
 export const MIN_LOG_ROW_HEIGHT_PX = 28;
 
@@ -20,7 +20,7 @@ const Container = styled.div`
   min-height: ${MIN_LOG_ROW_HEIGHT_PX}px;
 `;
 
-export type Row = Line & {
+export type Row = Log & {
   nodes: Array<LogNode & { id: string }>;
 };
 

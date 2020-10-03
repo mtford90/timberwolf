@@ -7,6 +7,7 @@ import { values } from "lodash";
 import configureServer from "./server";
 import { configureMenu } from "./menu";
 import { Database } from "./server/database";
+import { WebsocketServer } from "./server/websockets";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare let MAIN_WINDOW_WEBPACK_ENTRY: any;
@@ -29,7 +30,14 @@ const database = new Database();
 
 database.init();
 
-const { publishers } = configureServer({ database });
+const websocketServer = new WebsocketServer();
+
+websocketServer.init().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
+
+const { publishers } = configureServer({ database, websocketServer });
 
 const createWindow = () => {
   // session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
@@ -86,6 +94,7 @@ app.on("before-quit", () => {
     p.dispose();
   });
   database.close();
+  websocketServer.close();
 });
 
 app.on("activate", () => {

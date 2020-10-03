@@ -4,14 +4,15 @@
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL query operation: Suggest
+// GraphQL query operation: NumLogsQuery
 // ====================================================
 
-export interface Suggest {
-  suggest: string[];
+export interface NumLogsQuery {
+  numLogs: number;
 }
 
-export interface SuggestVariables {
+export interface NumLogsQueryVariables {
   source: string;
-  prefix: string;
+  rowId?: number | null;
+  filter?: string | null;
 }

@@ -4,14 +4,14 @@
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL query operation: NumLinesQuery
+// GraphQL subscription operation: SourcesSubscription
 // ====================================================
 
-export interface NumLinesQuery {
-  numLines: number;
+export interface SourcesSubscription_logs {
+  __typename: "Log";
+  source: string;
 }
 
-export interface NumLinesQueryVariables {
-  rowId?: number | null;
-  filter?: string | null;
+export interface SourcesSubscription {
+  logs: SourcesSubscription_logs;
 }

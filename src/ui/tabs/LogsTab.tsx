@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { LogRow } from "../components/LogRow";
 import { useScrollController, useScrollTracking } from "./scroll";
 import { useUnseen } from "./use-unseen";
-import { useStdin } from "./use-stdin";
+import { useLogs } from "./use-logs";
 
 const LogRows = styled.div`
   margin-top: auto;
@@ -30,12 +30,18 @@ const NewRows = styled.div`
   cursor: pointer;
 `;
 
-export default function TabStdIn({ filter }: { filter: string }) {
+export default function LogsTab({
+  source,
+  filter,
+}: {
+  filter: string;
+  source: string;
+}) {
   const unseen = useUnseen<number>();
 
   const { scroller, ref } = useScrollController();
 
-  const stdin = useStdin(filter, {
+  const logs = useLogs(source, filter, {
     onReset() {
       unseen.clear();
     },
@@ -63,16 +69,16 @@ export default function TabStdIn({ filter }: { filter: string }) {
     <>
       <Container ref={ref} onScroll={onScroll}>
         <LogRows>
-          {stdin.hasMore && (
+          {logs.hasMore && (
             <button
               type="button"
-              onClick={() => stdin.fetchMore()}
-              disabled={stdin.loadingMore}
+              onClick={() => logs.fetchMore()}
+              disabled={logs.loadingMore}
             >
               Load more
             </button>
           )}
-          {stdin.logs.map((log) => (
+          {logs.logs.map((log) => (
             <LogRow key={log.rowid} row={log} />
           ))}
         </LogRows>

@@ -4,23 +4,40 @@ import fs from "fs";
 import path from "path";
 import { values } from "lodash";
 import {
-  createIpcExecutor,
-  createSchemaLink,
+  initialGraphqlIpc,
+  createApolloSchemaLink,
 } from "../../common/gql-transport";
 import { initPublishers } from "./publishers";
-import { initResolvers } from "./resolvers";
+import { initialiseGQLResolvers } from "./resolvers";
 import { Database } from "./database";
+import { WebsocketServer } from "./websockets";
 
-export default function configureServer({ database }: { database: Database }) {
-  const publishers = initPublishers(database);
+type ConfigureServerOptions = {
+  database: Database;
+  websocketServer: WebsocketServer;
+};
+
+function initialisePublishers({
+  database,
+  websocketServer,
+}: ConfigureServerOptions) {
+  const publishers = initPublishers(database, websocketServer);
 
   values(publishers).forEach((pub) => {
     pub.init();
   });
 
-  const resolvers = initResolvers({ publishers, database });
+  return publishers;
+}
 
-  const link = createSchemaLink({
+export default function configureServer({
+  database,
+  websocketServer,
+}: ConfigureServerOptions) {
+  const publishers = initialisePublishers({ database, websocketServer });
+  const resolvers = initialiseGQLResolvers({ publishers, database });
+
+  const link = createApolloSchemaLink({
     schema: makeExecutableSchema({
       typeDefs: fs
         .readFileSync(path.resolve(__dirname, "./schema.graphql"))
@@ -29,7 +46,7 @@ export default function configureServer({ database }: { database: Database }) {
     }),
   });
 
-  createIpcExecutor({ link, ipc: ipcMain });
+  initialGraphqlIpc({ link, ipc: ipcMain });
 
   return { publishers };
 }

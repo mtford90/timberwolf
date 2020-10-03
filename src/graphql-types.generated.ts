@@ -17,8 +17,9 @@ export type Scalars = {
 
 
 
-export type Line = {
-  __typename: 'Line';
+export type Log = {
+  __typename: 'Log';
+  source: Scalars['String'];
   text: Scalars['String'];
   rowid: Scalars['Int'];
   timestamp: Scalars['DateTime'];
@@ -27,26 +28,30 @@ export type Line = {
 export type Query = {
   __typename: 'Query';
   numCpus: Scalars['Int'];
-  stdin: Array<Line>;
-  numLines: Scalars['Int'];
+  logs: Array<Log>;
+  source: Array<Scalars['String']>;
+  numLogs: Scalars['Int'];
   suggest: Array<Scalars['String']>;
 };
 
 
-export type QueryStdinArgs = {
+export type QueryLogsArgs = {
+  source: Scalars['String'];
   limit: Scalars['Int'];
   beforeRowId?: Maybe<Scalars['Int']>;
   filter?: Maybe<Scalars['String']>;
 };
 
 
-export type QueryNumLinesArgs = {
+export type QueryNumLogsArgs = {
+  source: Scalars['String'];
   beforeRowId?: Maybe<Scalars['Int']>;
   filter?: Maybe<Scalars['String']>;
 };
 
 
 export type QuerySuggestArgs = {
+  source: Scalars['String'];
   prefix: Scalars['String'];
   limit?: Maybe<Scalars['Int']>;
   offset?: Maybe<Scalars['Int']>;
@@ -54,11 +59,12 @@ export type QuerySuggestArgs = {
 
 export type Subscription = {
   __typename: 'Subscription';
-  stdin: Line;
+  logs: Log;
 };
 
 
-export type SubscriptionStdinArgs = {
+export type SubscriptionLogsArgs = {
+  source?: Maybe<Scalars['String']>;
   filter?: Maybe<Scalars['String']>;
 };
 
@@ -130,7 +136,7 @@ export type ResolversTypes = {
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   Date: ResolverTypeWrapper<Scalars['Date']>;
   Time: ResolverTypeWrapper<Scalars['Time']>;
-  Line: ResolverTypeWrapper<Line>;
+  Log: ResolverTypeWrapper<Log>;
   String: ResolverTypeWrapper<Scalars['String']>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
   Query: ResolverTypeWrapper<{}>;
@@ -143,7 +149,7 @@ export type ResolversParentTypes = {
   DateTime: Scalars['DateTime'];
   Date: Scalars['Date'];
   Time: Scalars['Time'];
-  Line: Line;
+  Log: Log;
   String: Scalars['String'];
   Int: Scalars['Int'];
   Query: {};
@@ -163,7 +169,8 @@ export interface TimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes
   name: 'Time';
 }
 
-export type LineResolvers<ContextType = any, ParentType extends ResolversParentTypes['Line'] = ResolversParentTypes['Line']> = {
+export type LogResolvers<ContextType = any, ParentType extends ResolversParentTypes['Log'] = ResolversParentTypes['Log']> = {
+  source?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   text?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   rowid?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   timestamp?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
@@ -172,20 +179,21 @@ export type LineResolvers<ContextType = any, ParentType extends ResolversParentT
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   numCpus?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  stdin?: Resolver<Array<ResolversTypes['Line']>, ParentType, ContextType, RequireFields<QueryStdinArgs, 'limit'>>;
-  numLines?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumLinesArgs, never>>;
-  suggest?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QuerySuggestArgs, 'prefix'>>;
+  logs?: Resolver<Array<ResolversTypes['Log']>, ParentType, ContextType, RequireFields<QueryLogsArgs, 'source' | 'limit'>>;
+  source?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  numLogs?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumLogsArgs, 'source'>>;
+  suggest?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QuerySuggestArgs, 'source' | 'prefix'>>;
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
-  stdin?: SubscriptionResolver<ResolversTypes['Line'], "stdin", ParentType, ContextType, RequireFields<SubscriptionStdinArgs, never>>;
+  logs?: SubscriptionResolver<ResolversTypes['Log'], "logs", ParentType, ContextType, RequireFields<SubscriptionLogsArgs, never>>;
 };
 
 export type Resolvers<ContextType = any> = {
   DateTime?: GraphQLScalarType;
   Date?: GraphQLScalarType;
   Time?: GraphQLScalarType;
-  Line?: LineResolvers<ContextType>;
+  Log?: LogResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
 };

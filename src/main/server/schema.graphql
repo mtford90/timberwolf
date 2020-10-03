@@ -2,7 +2,8 @@ scalar DateTime
 scalar Date
 scalar Time
 
-type Line {
+type Log {
+    source: String!
     text: String!
     rowid: Int!
     timestamp: DateTime!
@@ -10,11 +11,12 @@ type Line {
 
 type Query {
     numCpus: Int!
-    stdin(limit: Int!, beforeRowId: Int, filter: String): [Line!]!
-    numLines(beforeRowId: Int, filter: String): Int!
-    suggest(prefix: String!, limit: Int, offset: Int): [String!]!
+    logs(source: String!, limit: Int!, beforeRowId: Int, filter: String): [Log!]!
+    source: [String!]!
+    numLogs(source: String!, beforeRowId: Int, filter: String): Int!
+    suggest(source: String!, prefix: String!, limit: Int, offset: Int): [String!]!
 }
 
 type Subscription {
-    stdin(filter: String): Line!
+    logs(source: String, filter: String): Log!
 }

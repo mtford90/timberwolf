@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { compact, sortBy } from "lodash";
 import { Row } from "../../components/LogRow";
 import { useWorker } from "../../worker/use-worker";
-import { Line } from "../../../graphql-types.generated";
+import { Log } from "./types";
 
-export function useParseLogNodes(lines?: Line[] | null) {
+export function useParseLogNodes(logs?: Log[] | null) {
   const [state, setState] = useState<{
     error: unknown;
     loading: boolean;
@@ -20,11 +20,11 @@ export function useParseLogNodes(lines?: Line[] | null) {
   const parseCache = useRef(new Map<number, Row>());
 
   useEffect(() => {
-    if (lines && worker) {
-      const notCached: Line[] = [];
+    if (logs && worker) {
+      const notCached: Log[] = [];
 
       const cached = compact(
-        lines.map((l) => {
+        logs.map((l) => {
           const cachedRow = parseCache.current.get(l.rowid);
 
           if (!cachedRow) {
@@ -59,7 +59,7 @@ export function useParseLogNodes(lines?: Line[] | null) {
     }
 
     return () => {};
-  }, [lines, worker]);
+  }, [logs, worker]);
 
   return state;
 }
