@@ -5,8 +5,8 @@
   "description": "My Electron application description",
   "main": ".webpack/main",
   "scripts": {
-    "start": "electron-forge start",
-    "package": "electron-forge package",
+    "start": "NODE_ENV=development electron-forge start",
+    "package": "NODE_ENV=production electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "eslint \"./{src,tests}/**/*.{ts,tsx}\" --fix",
@@ -149,7 +149,6 @@
     "ts-essentials": "^7.0.0",
     "utility-types": "^3.10.0",
     "uuid": "^8.2.0",
-    "worker-loader": "^3.0.3",
     "ws": "^7.3.1",
     "xregexp": "^4.3.0"
   }

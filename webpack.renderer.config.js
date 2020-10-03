@@ -2,29 +2,20 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const path = require("path");
 const rules = require("./webpack.rules");
 const plugins = require("./webpack.plugins");
+const webpack = require('webpack')
 
 rules.push({
     test: /\.css$/,
     use: [{loader: "style-loader"}, {loader: "postcss-loader"}],
 });
 
+const nodeEnv = process.env.NODE_ENV;
+const isProduction = nodeEnv === 'production';
+
 module.exports = {
     // Put your normal webpack config below here
     module: {
-        rules: [
-            ...rules,
-            {
-                test: /\.worker\.ts$/,
-                use: {
-                    loader: 'worker-loader', options: {
-                        // TODO: Ideally the worker would not be inlined as a BLOB,
-                        // ...however there is an issue I can't figure out with regards to the final folder structure
-                        // ...of the generated webpack files (get a 404 on the worker js in prod mode)
-                        inline: 'no-fallback'
-                    }
-                },
-            }
-        ],
+        rules
     },
     plugins: [
         ...plugins,
@@ -32,10 +23,15 @@ module.exports = {
             patterns: [
                 {
                     from: path.resolve(__dirname, "assets"),
-                    to: path.resolve(__dirname, ".webpack/renderer", "assets"),
+                    // TODO: This is unfortunate...
+                    // ... in dev mode, webpack serves from .webpack/renderer/assets. In prod mode, files must be served from file:///renderer/main_window/assets
+                    to: path.resolve(__dirname, isProduction ? ".webpack/renderer/main_window" : ".webpack/renderer", "assets"),
                 },
             ],
         }),
+        new webpack.DefinePlugin({
+            'process.env.NODE_ENV': JSON.stringify(nodeEnv),
+        })
     ],
     resolve: {
         extensions: [".js", ".ts", ".jsx", ".tsx", ".css"],

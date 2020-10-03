@@ -21,10 +21,10 @@ module.exports = {
                 js: "./src/preload.ts",
               },
             },
-            // {
-            //   js: "./src/ui/worker/index.ts",
-            //   name: "worker",
-            // },
+            {
+              js: "./src/ui/worker/index.ts",
+              name: "worker",
+            },
           ],
         },
       },
