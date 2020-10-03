@@ -11,14 +11,14 @@ describe("logs publisher", () => {
   let stdinEmitter: ReturnType<typeof mitt>;
   let websocketEmitter: ReturnType<typeof mitt>;
   let sut: LogsPublisher;
-  let stdin: typeof process.logs;
+  let stdin: typeof process.stdin;
   let database: Database;
   let websocketServer: WebsocketServer;
 
   beforeEach(() => {
     pubSub = new PubSub();
     stdinEmitter = mitt();
-    stdin = deepMock<typeof process.logs>({
+    stdin = deepMock<typeof process.stdin>({
       resume: jest.fn(),
       setEncoding: jest.fn(),
       on: jest.fn().mockImplementation((event: any, handler: any) => {
@@ -37,7 +37,7 @@ describe("logs publisher", () => {
     websocketServer = new WebsocketServer(websocketEmitter);
     sut = new LogsPublisher({
       pubSub,
-      stdin: logs,
+      stdin,
       database,
       websocketServer,
     });

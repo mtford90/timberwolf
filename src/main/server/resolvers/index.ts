@@ -14,7 +14,7 @@ export type ResolverDependencies = {
   database: Database;
 };
 
-export function initResolvers({
+export function initialiseGQLResolvers({
   publishers,
   database,
 }: ResolverDependencies): Resolvers {

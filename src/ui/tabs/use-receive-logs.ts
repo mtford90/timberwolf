@@ -2,39 +2,47 @@ import { useEffect } from "react";
 import { useQuery } from "@apollo/client";
 
 import { last } from "lodash";
-import { LOGS_QUERY, LOGS_SUBSCRIPTION, NUM_LOGS_QUERY } from "./gql";
 
+import gql from "graphql-tag";
 import { useAsyncAction } from "../use-async-action";
 import {
   LogsSubscription,
   LogsSubscriptionVariables,
 } from "./__generated__/LogsSubscription";
-import {
-  NumLogsQuery,
-  NumLogsQueryVariables,
-} from "./__generated__/NumLogsQuery";
 import { LogsQuery, LogsQueryVariables } from "./__generated__/LogsQuery";
+import { useNumLogs } from "./use-num-logs";
 
-export function useNumLogs(source: string, rowId?: number, filter?: string) {
-  const { data, loading } = useQuery<NumLogsQuery, NumLogsQueryVariables>(
-    NUM_LOGS_QUERY,
-    {
-      variables: {
-        rowId,
-        source,
-        filter,
-      },
+export const LOGS_SUBSCRIPTION = gql`
+  subscription LogsSubscription($source: String, $filter: String) {
+    logs(source: $source, filter: $filter) {
+      rowid
+      timestamp
+      text
     }
-  );
-
-  return {
-    loading,
-    numLogs: data?.numLogs || 0,
-  };
-}
+  }
+`;
+export const LOGS_QUERY = gql`
+  query LogsQuery(
+    $source: String!
+    $limit: Int!
+    $beforeRowId: Int
+    $filter: String
+  ) {
+    logs(
+      source: $source
+      limit: $limit
+      beforeRowId: $beforeRowId
+      filter: $filter
+    ) {
+      rowid
+      timestamp
+      text
+    }
+  }
+`;
 
 /**
- * Hook up to stdin provided over gql
+ * Receives all logs, and all future logs from the specified source
  */
 export function useReceiveLogs({
   source,
@@ -57,7 +65,6 @@ export function useReceiveLogs({
   });
 
   useEffect(() => {
-    // Keep adding new logs to stdin as we receive them
     const unsubscribe = subscribeToMore<
       LogsSubscription,
       LogsSubscriptionVariables
@@ -78,6 +85,9 @@ export function useReceiveLogs({
       },
     });
 
+    // TODO: Is this necessary?
+    // Observed a weird issue where a hard refresh didn't cause subscription to be
+    // destroyed on unmount during hard refresh of electron client
     window.addEventListener("beforeunload", unsubscribe);
 
     return () => {
@@ -104,8 +114,7 @@ export function useReceiveLogs({
         limit,
         beforeRowId,
       };
-      console.log("fetching more", variables);
-      const dunno = await fetchMore({
+      await fetchMore({
         variables,
         updateQuery(prev, { fetchMoreResult }) {
           if (!fetchMoreResult) return prev;
@@ -115,9 +124,6 @@ export function useReceiveLogs({
           };
         },
       });
-      console.log("fetched more", dunno);
-    } else {
-      console.log("not fetching more", data);
     }
   }, [beforeRowId, fetchMore, data]);
 

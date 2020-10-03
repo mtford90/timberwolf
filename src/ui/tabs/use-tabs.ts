@@ -5,13 +5,19 @@ import { uniq } from "lodash";
 import { SourcesQuery } from "./__generated__/SourcesQuery";
 import { SourcesSubscription } from "./__generated__/SourcesSubscription";
 
-const SOURCES_QUERY = gql`
+/**
+ * Returns all sources
+ */
+export const SOURCES_QUERY = gql`
   query SourcesQuery {
     source
   }
 `;
 
-const SOURCES_SUBSCRIPTION = gql`
+/**
+ * Subscribe to all incoming logs, extracting just the source (e.g. stdin/websocket)
+ */
+export const SOURCES_SUBSCRIPTION = gql`
   subscription SourcesSubscription {
     logs {
       source
@@ -19,8 +25,14 @@ const SOURCES_SUBSCRIPTION = gql`
   }
 `;
 
+/**
+ * Hook to provide list of tabs to render.
+ *
+ * Provides new tabs as necessary depending on the source of incoming data
+ */
 export function useTabs() {
   const { data } = useQuery<SourcesQuery>(SOURCES_QUERY);
+
   const { data: subscribedData } = useSubscription<SourcesSubscription>(
     SOURCES_SUBSCRIPTION
   );

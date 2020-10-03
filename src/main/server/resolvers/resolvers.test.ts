@@ -1,6 +1,6 @@
 import { GraphQLResolveInfo } from "graphql";
 import { PubSub } from "graphql-subscriptions";
-import { initResolvers, ResolverDependencies } from "./index";
+import { initialiseGQLResolvers, ResolverDependencies } from "./index";
 import { deepMock } from "../../../../tests/util";
 import { Subscription } from "../../../graphql-types.generated";
 
@@ -14,7 +14,7 @@ describe("resolvers", () => {
   describe("query", () => {
     describe("numCpus", () => {
       it("should return the number of cpus", async () => {
-        const resolvers = initResolvers(deepMock<ResolverDependencies>({}));
+        const resolvers = initialiseGQLResolvers(deepMock<ResolverDependencies>({}));
 
         const response = resolvers.Query?.numCpus?.(
           parent,
@@ -43,7 +43,7 @@ describe("resolvers", () => {
           },
         });
 
-        const resolvers = initResolvers(deps);
+        const resolvers = initialiseGQLResolvers(deps);
 
         const response = resolvers.Query?.logs?.(
           parent,
@@ -89,7 +89,7 @@ describe("resolvers", () => {
           },
         });
 
-        const resolvers = initResolvers(deps);
+        const resolvers = initialiseGQLResolvers(deps);
 
         const response = resolvers.Query?.logs?.(
           parent,
@@ -129,7 +129,7 @@ describe("resolvers", () => {
           },
         });
 
-        const resolvers = initResolvers(deps);
+        const resolvers = initialiseGQLResolvers(deps);
         const result = resolvers.Query?.suggest?.(
           parent,
           {
@@ -158,7 +158,7 @@ describe("resolvers", () => {
 
       describe("with no filter", () => {
         it("should emit a payload", (done) => {
-          const resolvers = initResolvers(
+          const resolvers = initialiseGQLResolvers(
             deepMock<ResolverDependencies>({
               publishers: {
                 logs: {
@@ -206,7 +206,7 @@ describe("resolvers", () => {
 
       describe("with a filter", () => {
         it("should only emit matching payloads", (done) => {
-          const resolvers = initResolvers(
+          const resolvers = initialiseGQLResolvers(
             deepMock<ResolverDependencies>({
               publishers: {
                 logs: {

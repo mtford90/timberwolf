@@ -43,7 +43,7 @@ async function forAwaitEachBreakable (collection: any, callback: any) {
   }
 }
 
-export const createSchemaLink = <TRoot = any>(options: SchemaLinkOptions) => {
+export const createApolloSchemaLink = <TRoot = any>(options: SchemaLinkOptions) => {
   const handleRequest = async (request: Operation, observer: any, isCancelled: () => boolean) => {
     try {
       const context = options.context && (await options.context(request));
@@ -94,7 +94,7 @@ export const createSchemaLink = <TRoot = any>(options: SchemaLinkOptions) => {
   return new ApolloLink((request) => createObservable(request));
 };
 
-export const createIpcExecutor = (options: IpcExecutorOptions) => {
+export const initialiseGqlIpcExecutor = (options: IpcExecutorOptions) => {
   const channel = options.channel || "graphql";
   const subscriptions = new Map<string, ReturnType<typeof Observable.prototype.subscribe>>();
 

@@ -101,7 +101,7 @@
     "sort-package-json": "^1.39.1",
     "style-loader": "^1.2.1",
     "ts-jest": "^26.1.4",
-    "typescript": "^3.8.2",
+    "typescript": "3.9.5",
     "webpack-graphql-loader": "^1.0.2",
     "@types/ws": "^7.2.6"
   },
