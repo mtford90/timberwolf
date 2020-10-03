@@ -5,6 +5,7 @@ import { Publisher } from "./publisher";
 import { Database } from "../database";
 import { WebsocketServer } from "../websockets";
 import { WebsocketMessage } from "../websockets/validation";
+import { splitText } from "./split";
 
 export type StdinReadStream = typeof process.stdin;
 
@@ -64,40 +65,52 @@ export class LogsPublisher extends Publisher<"logs"> {
   }
 
   private receiveStdin = (data: Buffer) => {
-    const text = data.toString();
-    const [newLine] = this.database.insert([{ source: "stdin", text }]);
-    this.publish({
-      __typename: "Log",
-      rowid: newLine.rowid,
-      text: newLine.text,
-      timestamp: new Date(newLine.timestamp),
-      source: "stdin",
-    }).catch((err) => {
-      // TODO: Handle err properly
-      console.error(err);
+    const incoming = data.toString();
+    const split = splitText(incoming);
+
+    const dbEntries = this.database.insert(
+      split.map((s) => ({ source: "stdin", text: s, timestamp: Date.now() }))
+    );
+
+    dbEntries.forEach((entry) => {
+      this.publish({
+        __typename: "Log",
+        rowid: entry.rowid,
+        text: entry.text,
+        timestamp: new Date(entry.timestamp),
+        source: "stdin",
+      }).catch((err) => {
+        // TODO: Handle err properly
+        console.error(err);
+      });
     });
   };
 
   private receiveWebsocketMessage = (message: WebsocketMessage) => {
-    const [newLine] = this.database.insert([
-      {
-        source: `ws/${message.name}`,
-        text: message.text,
-        timestamp: message.timestamp,
-      },
-    ]);
-
+    const split = splitText(message.text);
     const source = `ws/${message.name}`;
 
-    this.publish({
-      __typename: "Log",
-      rowid: newLine.rowid,
-      text: message.text,
-      timestamp: message.timestamp,
-      source,
-    }).catch((err) => {
-      // TODO: Handle err properly
-      console.error(err);
+    const toInsert = split.map((s) => {
+      return {
+        source,
+        text: s,
+        timestamp: message.timestamp,
+      };
+    });
+
+    const rows = this.database.insert(toInsert);
+
+    rows.forEach((r) => {
+      this.publish({
+        __typename: "Log",
+        rowid: r.rowid,
+        text: r.text,
+        timestamp: r.timestamp,
+        source: r.source,
+      }).catch((err) => {
+        // TODO: Handle err properly
+        console.error(err);
+      });
     });
   };
 

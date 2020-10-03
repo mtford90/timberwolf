@@ -1,5 +1,5 @@
 import os from "os";
-import { GraphQLDateTime, GraphQLDate, GraphQLTime } from "graphql-iso-date";
+import { GraphQLDate, GraphQLDateTime, GraphQLTime } from "graphql-iso-date";
 import { withFilter } from "graphql-subscriptions";
 import {
   Resolvers,
@@ -27,7 +27,7 @@ export function initialiseGQLResolvers({
         return os.cpus().length;
       },
       logs(parent, { source, limit, beforeRowId, filter }) {
-        const logs = database
+        return database
           .logs(source, { limit, beforeRowId, filter })
           .map((res) => ({
             __typename: "Log" as const,
@@ -36,10 +36,6 @@ export function initialiseGQLResolvers({
             text: res.text,
             source,
           }));
-
-        console.log("stdin", { limit, beforeRowId, filter }, logs.length);
-
-        return logs;
       },
       source() {
         return database.sources();
