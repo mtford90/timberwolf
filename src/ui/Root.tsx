@@ -21,13 +21,19 @@ export default function Root() {
   return (
     <RootContainer>
       <>
-        <div>
-          {tabs.map((tab) => (
-            <button type="button" onClick={() => setSelectedTab(tab)}>
-              {tab}
-            </button>
-          ))}
-        </div>
+        {tabs.length > 1 && (
+          <div>
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setSelectedTab(tab)}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        )}
         {selectedTab && <LogsTab source={selectedTab} filter={filter} />}
         <FilterInput source="stdin" onChangeText={setFilter} />
       </>
