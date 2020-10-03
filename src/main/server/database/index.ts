@@ -110,11 +110,11 @@ export class Database {
   ): Array<{ rowid: number; source: string; timestamp: number; text: string }> {
     const rowIdsList = `(${rowIds.join(",")})`;
 
-    return this.db
-      .prepare(
-        `SELECT ${this.getFields(opts)} FROM logs WHERE ROWID in ${rowIdsList}`
-      )
-      .all();
+    const stmt = `SELECT ${this.getFields(
+      opts
+    )} FROM logs WHERE ROWID in ${rowIdsList}`;
+
+    return this.db.prepare(stmt).all();
   }
 
   logs(

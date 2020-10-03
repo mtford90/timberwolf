@@ -18,5 +18,5 @@ type Query {
 }
 
 type Subscription {
-    logs(source: String, filter: String): [Log!]!
+    logs(source: String, filter: String): Log!
 }
