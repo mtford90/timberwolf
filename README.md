@@ -17,9 +17,13 @@ npm test
 
 ## Package & Run
 
-Creates a build in `out` folder
+Creates a build in `out` folder.
 
 ```bash
 npm run package
-open ./out/Timberwolf-darwin-x64/Timberwolf.app
+# Test stdin piping
+cat ./log.txt | ./out/Timberwolf-darwin-x64/Timberwolf.app/Contents/MacOS/Timberwolf
+# Open directly
+./out/Timberwolf-darwin-x64/Timberwolf.app
 ```
+
