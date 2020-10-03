@@ -1,6 +1,6 @@
 import gql from "graphql-tag";
-import { useQuery, useSubscription } from "@apollo/client";
-import { useEffect, useState } from "react";
+import { useApolloClient, useQuery } from "@apollo/client";
+import { useCallback, useEffect, useState } from "react";
 import { uniq } from "lodash";
 import { SourcesQuery } from "./__generated__/SourcesQuery";
 import { SourcesSubscription } from "./__generated__/SourcesSubscription";
@@ -33,9 +33,7 @@ export const SOURCES_SUBSCRIPTION = gql`
 export function useTabs() {
   const { data } = useQuery<SourcesQuery>(SOURCES_QUERY);
 
-  const { data: subscribedData } = useSubscription<SourcesSubscription>(
-    SOURCES_SUBSCRIPTION
-  );
+  const client = useApolloClient();
 
   const [sources, setSources] = useState(data?.source || []);
   const [selectedTab, setSelectedTab] = useState<string | null>(null);
@@ -58,14 +56,41 @@ export function useTabs() {
     }
   }, [data?.source]);
 
-  const latestSource = subscribedData?.logs.source;
-
+  // TODO: Why doesn't useSubscription work with tests & MockedProvider?
+  // I did originally use `useSubscription` for this - but it causes a strange error in the tests:
+  //   - Error: Rendered fewer hooks than expected. This may be caused by an accidental early return statement.
   useEffect(() => {
-    if (latestSource) {
-      setSources((s) => uniq([...s, latestSource]));
-      ensureTab(latestSource);
-    }
-  }, [latestSource]);
+    const observable = client.subscribe<SourcesSubscription>({
+      query: SOURCES_SUBSCRIPTION,
+    });
 
-  return { tabs: sources, selectedTab, setSelectedTab };
+    const subscription = observable.subscribe((next) => {
+      // TODO: Handle errors in here
+      const latestSource = next.data?.logs.source;
+      if (latestSource) {
+        setSources((s) => uniq([...s, latestSource]));
+        ensureTab(latestSource);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [client]);
+
+  const deleteTab = useCallback(
+    (source: string) => {
+      setSources((ss) => {
+        const index = ss.findIndex((s) => s === source);
+
+        if (index > -1) {
+          const newSources = [...ss];
+          newSources.splice(index, 1);
+          return newSources;
+        }
+        return ss;
+      });
+    },
+    [setSources]
+  );
+
+  return { tabs: sources, selectedTab, setSelectedTab, deleteTab };
 }
