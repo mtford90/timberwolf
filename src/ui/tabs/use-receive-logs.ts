@@ -94,7 +94,7 @@ export function useReceiveLogs({
       unsubscribe();
       window.removeEventListener("beforeunload", unsubscribe);
     };
-  }, [subscribeToMore, filter]);
+  }, [subscribeToMore, filter, source]);
 
   const beforeRowId = last(data?.logs)?.rowid;
 

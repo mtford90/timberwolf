@@ -5,9 +5,11 @@ import { JsonLogNode } from "../../lib/parse/json";
 import { renderLabel, renderValue } from "./renderers";
 import { theme } from "./theme";
 
-const CodeBlock = styled.code`
+const CodeBlock = styled.span`
   display: inline-block;
   max-width: 100vw;
+  position: relative;
+  margin-left: 0.5rem;
 
   ul {
     // Hide react-json-tree default background colour
@@ -15,11 +17,6 @@ const CodeBlock = styled.code`
 
     // Hide default margins
     margin: 0 !important;
-
-    // Bring the tree inline with the text
-    // TODO: Better way of handling this?
-    position: relative;
-    bottom: 3px;
   }
 `;
 

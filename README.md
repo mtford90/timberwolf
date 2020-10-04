@@ -21,9 +21,25 @@ Creates a build in `out` folder.
 
 ```bash
 npm run package
-# Test stdin piping
-cat ./log.txt | ./out/Timberwolf-darwin-x64/Timberwolf.app/Contents/MacOS/Timberwolf
+
 # Open directly
 ./out/Timberwolf-darwin-x64/Timberwolf.app
 ```
+
+### stdin
+
+```bash
+cat ./log.txt | ./out/Timberwolf-darwin-x64/Timberwolf.app/Contents/MacOS/Timberwolf
+```
+
+### websocket
+
+```bash
+# open the app
+./out/Timberwolf-darwin-x64/Timberwolf.app
+
+# open a websocket client to send logs
+wscat -c ws://localhost:8080
+```
+
 

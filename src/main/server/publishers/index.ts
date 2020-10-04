@@ -2,6 +2,7 @@ import { PubSub } from "graphql-subscriptions";
 import { LogsPublisher } from "./logs-publisher";
 import { Database } from "../database";
 import { WebsocketServer } from "../websockets";
+import { SystemInfoPublisher } from "./system-info-publisher";
 
 export function initPublishers(
   database: Database,
@@ -11,6 +12,7 @@ export function initPublishers(
 
   return {
     logs: new LogsPublisher({ pubSub, database, websocketServer }),
+    systemInfo: new SystemInfoPublisher({ pubsub: pubSub, websocketServer }),
   };
 }
 

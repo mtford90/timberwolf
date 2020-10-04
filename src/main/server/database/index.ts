@@ -62,6 +62,7 @@ export class Database {
       return stmt.run(source, timestamp || Date.now(), text)
         .lastInsertRowid as number;
     });
+
     const entries = this.getWords(rows);
 
     entries.forEach(([source, words]) => {

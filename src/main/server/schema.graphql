@@ -9,14 +9,22 @@ type Log {
     timestamp: DateTime!
 }
 
+type SystemInfo {
+    darkModeEnabled: Boolean!
+    websocketPort: Int
+    executablePath: String!
+}
+
 type Query {
     numCpus: Int!
     logs(source: String!, limit: Int!, beforeRowId: Int, filter: String): [Log!]!
     source: [String!]!
     numLogs(source: String!, beforeRowId: Int, filter: String): Int!
     suggest(source: String!, prefix: String!, limit: Int, offset: Int): [String!]!
+    systemInfo: SystemInfo!
 }
 
 type Subscription {
     logs(source: String, filter: String): Log!
+    systemInfo: SystemInfo!
 }

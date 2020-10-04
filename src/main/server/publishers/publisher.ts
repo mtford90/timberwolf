@@ -13,7 +13,12 @@ export abstract class Publisher<T extends Trigger> {
   }
 
   protected publish(payload: Subscription[T]) {
-    return this.pubSub.publish(this.trigger, { [this.trigger]: payload });
+    this.pubSub
+      .publish(this.trigger, { [this.trigger]: payload })
+      .catch((err) => {
+        // TODO: Display error to user or something
+        console.error(err);
+      });
   }
 
   asyncIterator() {
