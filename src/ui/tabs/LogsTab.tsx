@@ -18,7 +18,6 @@ const Container = styled.div`
   overflow-y: scroll;
   overflow-x: hidden;
   justify-content: flex-end;
-  position: relative;
 `;
 
 const NewRowsContainer = styled.div`
@@ -27,6 +26,9 @@ const NewRowsContainer = styled.div`
   display: flex;
   left: 0;
   bottom: 0;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4rem;
 `;
 
 const NewLogsIndicatorContainer = styled.div`

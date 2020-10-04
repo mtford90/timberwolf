@@ -79,14 +79,11 @@ export default function FilterInput({
   source: string;
   onChangeText: (text: string) => void;
 }) {
-  const [filter, setFilter] = useState("");
+  const [filters, setFilters] = useState<{ [source: string]: string }>({});
+  const filterForSource = filters[source] || "";
 
-  const debouncedFilter = useDebouncedValue(filter);
+  const debouncedFilter = useDebouncedValue(filterForSource);
   const suggestions = useSuggestions(source, debouncedFilter);
-
-  useEffect(() => {
-    console.log("received new suggestions", suggestions);
-  }, [suggestions]);
 
   const [suggestionIndex, setSuggestionIndex] = useState(0);
 
@@ -97,7 +94,10 @@ export default function FilterInput({
     setSuggestionIndex(0);
   }, [debouncedFilter]);
 
-  const onChange = useCallback((e) => setFilter(e.target.value), [setFilter]);
+  const onChange = useCallback(
+    (e) => setFilters((fs) => ({ ...fs, [source]: e.target.value })),
+    [setFilters]
+  );
 
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -122,7 +122,7 @@ export default function FilterInput({
           inputRef.current = input;
         }}
         inputClassName={CLASS_NAME_AUTOSIZE_INPUT}
-        value={filter}
+        value={filterForSource}
         autoFocus
         onChange={onChange}
         placeholder="Search Logs"
@@ -135,7 +135,12 @@ export default function FilterInput({
           if (e.keyCode === TAB_KEY_CODE) {
             halt();
             if (firstSuggestion) {
-              setFilter(firstSuggestion);
+              setFilters((fs) => {
+                return {
+                  ...fs,
+                  [source]: firstSuggestion,
+                };
+              });
             }
           } else if (e.keyCode === DOWN_KEY_CODE) {
             halt();
@@ -148,7 +153,7 @@ export default function FilterInput({
       />
       <Suggestion>
         {firstSuggestion?.replace(
-          new RegExp(`^${escapeRegExp(filter)}`, "i"),
+          new RegExp(`^${escapeRegExp(filterForSource)}`, "i"),
           ""
         )}
       </Suggestion>
