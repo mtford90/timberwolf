@@ -39,10 +39,9 @@ export class LogsPublisher extends Publisher<"logs"> {
     this.stdin.on("data", this.receiveStdin);
     this.websocketServer?.on("message", this.receiveWebsocketMessage);
     this.websocketServer?.on("error", this.receiveWebsocketError);
-    // this.mockStdIn();
+    this.mockStdIn();
   }
 
-  // noinspection JSUnusedLocalSymbols
   /**
    * Randomly generate stdin input for use in development
    */

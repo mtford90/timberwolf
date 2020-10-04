@@ -52,7 +52,7 @@ describe("websocket message validation", () => {
       const res = await parseMessage(payload);
       expect(res).toEqual(
         expect.objectContaining({
-          name: "websocket",
+          name: "default",
           text: "my log!",
         })
       );

@@ -29,7 +29,7 @@ export async function parseMessage(message: string): Promise<WebsocketMessage> {
   if (typeof parsed === "string") {
     parsed = {
       text: parsed,
-      name: "websocket",
+      name: "default",
     };
   }
 

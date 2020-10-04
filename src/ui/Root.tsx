@@ -34,6 +34,30 @@ const GlobalStyle = createGlobalStyle`
     font-size: 0.8em;
     white-space: pre-wrap;   
   }
+  
+  button {
+    &:focus {
+      outline: 0;
+    }
+  }
+`;
+
+const Tab = styled.button<{ selected: boolean }>`
+  background-color: ${(props) =>
+    props.selected ? props.theme.colors.transparentHover : "transparent"};
+  border-style: solid;
+  border-left-width: 0;
+  border-bottom-width: 0;
+  border-right-width: 1px;
+  border-top-width: 0;
+  border-color: ${(props) => props.theme.colors.borderColor};
+  cursor: pointer;
+
+  padding: 0.5rem;
+
+  &:hover {
+    background-color: ${(props) => props.theme.colors.transparentHover};
+  }
 `;
 
 export default function Root() {
@@ -46,9 +70,14 @@ export default function Root() {
       <GlobalStyle />
       <Header>
         {tabs.map((tab) => (
-          <button key={tab} type="button" onClick={() => setSelectedTab(tab)}>
+          <Tab
+            selected={tab === selectedTab}
+            key={tab}
+            type="button"
+            onClick={() => setSelectedTab(tab)}
+          >
             {tab}
-          </button>
+          </Tab>
         ))}
       </Header>
       {selectedTab ? (
