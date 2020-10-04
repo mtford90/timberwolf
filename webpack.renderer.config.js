@@ -15,7 +15,13 @@ const isProduction = nodeEnv === 'production';
 module.exports = {
     // Put your normal webpack config below here
     module: {
-        rules
+        rules: [
+            ...rules,
+            {
+                test: /\.svg$/,
+                use: ['@svgr/webpack'],
+            },
+        ]
     },
     plugins: [
         ...plugins,

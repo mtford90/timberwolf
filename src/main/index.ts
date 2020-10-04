@@ -55,6 +55,9 @@ const createWindow = () => {
     height: 600,
     webPreferences: {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+      // The below parameters ensure the UI process is isolated from main process (node)
+      // These parameters are the reason why something like the GraphQL interprocess communication is required in order
+      // to selectively expose functionality from the main process
       nodeIntegration: false,
       enableRemoteModule: false,
       worldSafeExecuteJavaScript: true,

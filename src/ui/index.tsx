@@ -5,7 +5,6 @@ import * as ReactDOM from "react-dom";
 import { ThemeProvider } from "styled-components";
 import { ApolloProvider } from "@apollo/client";
 import { useMemo } from "react";
-import * as theme from "./theme";
 import Root from "./Root";
 
 import { initStores, StoresProvider } from "./stores";
@@ -13,6 +12,17 @@ import { useInitElectronApolloClient } from "../common/gql-transport/apollo";
 
 import "normalize.css";
 import "./index.css";
+import { useTheme } from "./lib/use-theme";
+
+function ThemedRoot() {
+  const theme = useTheme();
+
+  return (
+    <ThemeProvider theme={theme}>
+      <Root />
+    </ThemeProvider>
+  );
+}
 
 function App() {
   const apolloClient = useInitElectronApolloClient();
@@ -21,11 +31,9 @@ function App() {
 
   return (
     <ApolloProvider client={apolloClient}>
-      <ThemeProvider theme={theme}>
-        <StoresProvider value={stores}>
-          <Root />
-        </StoresProvider>
-      </ThemeProvider>
+      <StoresProvider value={stores}>
+        <ThemedRoot />
+      </StoresProvider>
     </ApolloProvider>
   );
 }

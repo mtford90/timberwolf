@@ -1,6 +1,7 @@
 import os from "os";
 import { GraphQLDate, GraphQLDateTime, GraphQLTime } from "graphql-iso-date";
 import { withFilter } from "graphql-subscriptions";
+import { nativeTheme } from "electron";
 import {
   Resolvers,
   Subscription,
@@ -8,15 +9,19 @@ import {
 } from "../../../graphql-types.generated";
 import { Publishers } from "../publishers";
 import { Database } from "../database";
+import { WebsocketServer } from "../websockets";
+import { getExecutablePath } from "./executable-path";
 
 export type ResolverDependencies = {
   publishers: Publishers;
   database: Database;
+  websocketServer: WebsocketServer;
 };
 
 export function initialiseGQLResolvers({
   publishers,
   database,
+  websocketServer,
 }: ResolverDependencies): Resolvers {
   return {
     DateTime: GraphQLDateTime,
@@ -44,10 +49,27 @@ export function initialiseGQLResolvers({
         return database.numLogs(source, beforeRowId, filter);
       },
       suggest(parent, { source, limit, offset, prefix }) {
-        return database.suggest(source, prefix, {
+        const suggestions = database.suggest(source, prefix, {
           limit: limit || 10,
           offset: offset || 0,
         });
+
+        console.log(`[resolvers] suggest: ${suggestions.join(", ")}`, {
+          source,
+          limit,
+          offset,
+          prefix,
+        });
+
+        return suggestions;
+      },
+      systemInfo() {
+        return {
+          __typename: "SystemInfo",
+          darkModeEnabled: nativeTheme.shouldUseDarkColors,
+          executablePath: getExecutablePath(),
+          websocketPort: websocketServer.port,
+        };
       },
     },
 
@@ -74,6 +96,9 @@ export function initialiseGQLResolvers({
             return true;
           }
         ),
+      },
+      systemInfo: {
+        subscribe: () => publishers.systemInfo.asyncIterator(),
       },
     },
   };

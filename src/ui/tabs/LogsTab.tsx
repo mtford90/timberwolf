@@ -17,22 +17,75 @@ const Container = styled.div`
   justify-content: flex-end;
 `;
 
-const NewRows = styled.div`
-  background-color: red;
+const NewRowsContainer = styled.div`
   position: absolute;
-  left: 20px;
-  bottom: 100px;
+  width: 100%;
+  display: flex;
+  left: 0;
+  bottom: 0;
+`;
+
+const NewRows = styled.div`
+  background-color: #388858;
   color: white;
   font-weight: bold;
   padding: 10px;
   border-radius: 10px;
-  font-size: 1.2em;
+  font-size: 0.9em;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
+const LoadMoreButton = styled.button`
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 1em;
+  padding: 1rem;
+  background-color: transparent;
+  border: none;
+  width: 100%;
+  text-align: center;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+    background-color: ${(props) => props.theme.colors.transparentHover};
+  }
+
+  &:focus {
+    outline: 0;
+  }
+`;
+
+const DownArrowContainer = styled.span`
+  display: block;
+  height: 20px;
+  width: 20px;
+`;
+
+function DownArrow() {
+  return (
+    <DownArrowContainer>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fillRule="evenodd"
+          d="M15.707 4.293a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-5-5a1 1 0 011.414-1.414L10 8.586l4.293-4.293a1 1 0 011.414 0zm0 6a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-5-5a1 1 0 111.414-1.414L10 14.586l4.293-4.293a1 1 0 011.414 0z"
+          clipRule="evenodd"
+        />
+      </svg>
+    </DownArrowContainer>
+  );
+}
+
 export default function LogsTab({
-  source,
   filter,
+  source,
 }: {
   filter: string;
   source: string;
@@ -66,32 +119,35 @@ export default function LogsTab({
   });
 
   return (
-    <>
-      <Container ref={ref} onScroll={onScroll}>
+    <Container ref={ref} onScroll={onScroll}>
+      <>
         <LogRows>
           {logs.hasMore && (
-            <button
+            <LoadMoreButton
               type="button"
               onClick={() => logs.fetchMore()}
               disabled={logs.loadingMore}
             >
               Load more
-            </button>
+            </LoadMoreButton>
           )}
           {logs.logs.map((log) => (
             <LogRow key={log.rowid} row={log} />
           ))}
         </LogRows>
-        {unseen.items.length ? (
-          <NewRows
-            onClick={() => {
-              scroller?.scrollToBottom();
-            }}
-          >
-            {unseen.items.length} new logs
-          </NewRows>
-        ) : null}
-      </Container>
-    </>
+        <NewRowsContainer>
+          {unseen.items.length ? (
+            <NewRows
+              onClick={() => {
+                scroller?.scrollToBottom();
+              }}
+            >
+              <DownArrow />
+              {unseen.items.length}
+            </NewRows>
+          ) : null}
+        </NewRowsContainer>
+      </>
+    </Container>
   );
 }

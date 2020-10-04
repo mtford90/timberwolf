@@ -17,7 +17,7 @@ type ConfigureServerOptions = {
   websocketServer: WebsocketServer;
 };
 
-function initialisePublishers({
+export default function configureServer({
   database,
   websocketServer,
 }: ConfigureServerOptions) {
@@ -27,15 +27,11 @@ function initialisePublishers({
     pub.init();
   });
 
-  return publishers;
-}
-
-export default function configureServer({
-  database,
-  websocketServer,
-}: ConfigureServerOptions) {
-  const publishers = initialisePublishers({ database, websocketServer });
-  const resolvers = initialiseGQLResolvers({ publishers, database });
+  const resolvers = initialiseGQLResolvers({
+    publishers,
+    database,
+    websocketServer,
+  });
 
   const link = createApolloSchemaLink({
     schema: makeExecutableSchema({

@@ -52,21 +52,13 @@
   src: url('assets/fonts/JetBrainsMono-ExtraBold.woff2');
 }
 
-code {
-  font-family: "JetBrains Mono", monospace;
-}
-
-pre {
-  margin: 0;
-  font-family: "JetBrains Mono", monospace;
-}
-
 html {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  font-family: "JetBrains Mono", monospace;
 }
 
 *, *:before, *:after {

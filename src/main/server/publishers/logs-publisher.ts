@@ -38,9 +38,11 @@ export class LogsPublisher extends Publisher<"logs"> {
     this.stdin.setEncoding("utf8");
     this.stdin.on("data", this.receiveStdin);
     this.websocketServer?.on("message", this.receiveWebsocketMessage);
-    this.mockStdIn();
+    this.websocketServer?.on("error", this.receiveWebsocketError);
+    // this.mockStdIn();
   }
 
+  // noinspection JSUnusedLocalSymbols
   /**
    * Randomly generate stdin input for use in development
    */
@@ -79,9 +81,6 @@ export class LogsPublisher extends Publisher<"logs"> {
         text: entry.text,
         timestamp: new Date(entry.timestamp),
         source: "stdin",
-      }).catch((err) => {
-        // TODO: Handle err properly
-        console.error(err);
       });
     });
   };
@@ -105,17 +104,20 @@ export class LogsPublisher extends Publisher<"logs"> {
         __typename: "Log",
         rowid: r.rowid,
         text: r.text,
-        timestamp: r.timestamp,
+        timestamp: new Date(r.timestamp),
         source: r.source,
-      }).catch((err) => {
-        // TODO: Handle err properly
-        console.error(err);
       });
     });
+  };
+
+  private receiveWebsocketError = (error: Error) => {
+    // TODO: improve error handling
+    console.error(error);
   };
 
   dispose() {
     this.stdin.off("data", this.receiveStdin);
     this.websocketServer?.off("message", this.receiveWebsocketMessage);
+    this.websocketServer?.off("error", this.receiveWebsocketError);
   }
 }

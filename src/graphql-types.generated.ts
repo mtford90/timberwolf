@@ -25,6 +25,13 @@ export type Log = {
   timestamp: Scalars['DateTime'];
 };
 
+export type SystemInfo = {
+  __typename: 'SystemInfo';
+  darkModeEnabled: Scalars['Boolean'];
+  websocketPort?: Maybe<Scalars['Int']>;
+  executablePath: Scalars['String'];
+};
+
 export type Query = {
   __typename: 'Query';
   numCpus: Scalars['Int'];
@@ -32,6 +39,7 @@ export type Query = {
   source: Array<Scalars['String']>;
   numLogs: Scalars['Int'];
   suggest: Array<Scalars['String']>;
+  systemInfo: SystemInfo;
 };
 
 
@@ -60,6 +68,7 @@ export type QuerySuggestArgs = {
 export type Subscription = {
   __typename: 'Subscription';
   logs: Log;
+  systemInfo: SystemInfo;
 };
 
 
@@ -139,9 +148,10 @@ export type ResolversTypes = {
   Log: ResolverTypeWrapper<Log>;
   String: ResolverTypeWrapper<Scalars['String']>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
+  SystemInfo: ResolverTypeWrapper<SystemInfo>;
+  Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   Query: ResolverTypeWrapper<{}>;
   Subscription: ResolverTypeWrapper<{}>;
-  Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -152,9 +162,10 @@ export type ResolversParentTypes = {
   Log: Log;
   String: Scalars['String'];
   Int: Scalars['Int'];
+  SystemInfo: SystemInfo;
+  Boolean: Scalars['Boolean'];
   Query: {};
   Subscription: {};
-  Boolean: Scalars['Boolean'];
 };
 
 export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
@@ -177,16 +188,25 @@ export type LogResolvers<ContextType = any, ParentType extends ResolversParentTy
   __isTypeOf?: IsTypeOfResolverFn<ParentType>;
 };
 
+export type SystemInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['SystemInfo'] = ResolversParentTypes['SystemInfo']> = {
+  darkModeEnabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  websocketPort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  executablePath?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType>;
+};
+
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   numCpus?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   logs?: Resolver<Array<ResolversTypes['Log']>, ParentType, ContextType, RequireFields<QueryLogsArgs, 'source' | 'limit'>>;
   source?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   numLogs?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumLogsArgs, 'source'>>;
   suggest?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QuerySuggestArgs, 'source' | 'prefix'>>;
+  systemInfo?: Resolver<ResolversTypes['SystemInfo'], ParentType, ContextType>;
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
   logs?: SubscriptionResolver<ResolversTypes['Log'], "logs", ParentType, ContextType, RequireFields<SubscriptionLogsArgs, never>>;
+  systemInfo?: SubscriptionResolver<ResolversTypes['SystemInfo'], "systemInfo", ParentType, ContextType>;
 };
 
 export type Resolvers<ContextType = any> = {
@@ -194,6 +214,7 @@ export type Resolvers<ContextType = any> = {
   Date?: GraphQLScalarType;
   Time?: GraphQLScalarType;
   Log?: LogResolvers<ContextType>;
+  SystemInfo?: SystemInfoResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
 };

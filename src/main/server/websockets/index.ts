@@ -2,11 +2,15 @@ import getPort from "get-port";
 import mitt from "mitt";
 
 import * as WebSocket from "ws";
+import { observable, runInAction } from "mobx";
 import { parseMessage, WebsocketMessage } from "./validation";
 
 type Emitter = ReturnType<typeof mitt>;
 
 export class WebsocketServer {
+  @observable
+  public port?: number;
+
   private server?: WebSocket.Server;
 
   private emitter: Emitter;
@@ -17,16 +21,36 @@ export class WebsocketServer {
 
   async init() {
     const port = await getPort({ port: 8080 });
+    runInAction(() => {
+      this.port = port;
+    });
     console.log(`Websocket server running on port ${port}`);
     this.server = new WebSocket.Server({ port });
-    this.server.on("message", (data) => {
-      parseMessage(data)
-        .then((message) => {
-          this.emitter.emit("message", message);
-        })
-        .catch((err) => {
-          this.emitter.emit("error", err);
-        });
+
+    this.server.on("error", (err) => {
+      // TODO: Improve error handling
+      console.error(err);
+    });
+    this.server.on("connection", (ws) => {
+      ws.on("message", (data) => {
+        const message = Buffer.from(data).toString("utf8");
+        console.log(`received websocket message`, message);
+        parseMessage(message)
+          .then((parsedMessage) => {
+            this.emitter.emit("message", parsedMessage);
+            ws.send(JSON.stringify({ ok: true }));
+          })
+          .catch((err) => {
+            this.emitter.emit("error", err);
+            ws.send(
+              JSON.stringify({
+                detail: err.message,
+                error: "Invalid message",
+                ok: false,
+              })
+            );
+          });
+      });
     });
   }
 

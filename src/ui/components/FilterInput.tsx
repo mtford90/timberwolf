@@ -4,6 +4,7 @@ import styled from "styled-components";
 import gql from "graphql-tag";
 import { useQuery } from "@apollo/client";
 import AutosizeInput from "react-input-autosize";
+import { transparentize } from "polished";
 import useDebouncedValue from "../use-debounced-value";
 import { Suggest, SuggestVariables } from "./__generated__/Suggest";
 
@@ -11,27 +12,35 @@ const CLASS_NAME_AUTOSIZE_INPUT = "AutosizeInput";
 
 const Wrapper = styled.div`
   width: 100%;
-  padding: 2rem;
+  padding: 1rem;
 
   display: flex;
   flex-direction: row;
+  align-items: center;
+  justify-content: center;
+
+  border-top-color: ${(props) => props.theme.colors.borderColor};
+  border-top-width: 1px;
+  border-top-style: solid;
 
   .${CLASS_NAME_AUTOSIZE_INPUT} {
     border-radius: 0;
-    border-left: none;
-    border-right: none;
-    border-bottom: none;
-
+    border: none;
+    padding: 0;
     &:focus {
       outline: 0;
     }
 
-    background-color: red;
+    background-color: transparent;
   }
 `;
 
 const Suggestion = styled.div`
   flex: 1;
+  color: ${(props) => transparentize(0.3, props.theme.colors.textColor)};
+  position: relative;
+  // TODO: Is there a nicer way to position this? Perhaps use inline content-editable instead of an input alongside this
+  right: 1.6px;
 `;
 
 const SUGGESTIONS_QUERY = gql`
@@ -74,6 +83,11 @@ export default function FilterInput({
 
   const debouncedFilter = useDebouncedValue(filter);
   const suggestions = useSuggestions(source, debouncedFilter);
+
+  useEffect(() => {
+    console.log("received new suggestions", suggestions);
+  }, [suggestions]);
+
   const [suggestionIndex, setSuggestionIndex] = useState(0);
 
   const firstSuggestion = suggestions && suggestions[suggestionIndex];
@@ -109,19 +123,26 @@ export default function FilterInput({
         }}
         inputClassName={CLASS_NAME_AUTOSIZE_INPUT}
         value={filter}
+        autoFocus
         onChange={onChange}
+        placeholder="Search Logs"
         onKeyDown={(e) => {
-          if (e.keyCode === TAB_KEY_CODE) {
+          const halt = () => {
             e.preventDefault();
+            e.stopPropagation();
+          };
+
+          if (e.keyCode === TAB_KEY_CODE) {
+            halt();
             if (firstSuggestion) {
               setFilter(firstSuggestion);
             }
-          } else if (e.keyCode === DOWN_KEY_CODE && hasNextSuggestion) {
-            e.preventDefault();
-            setSuggestionIndex(suggestionIndex + 1);
-          } else if (e.keyCode === UP_KEY_CODE && hasPreviousSuggestion) {
-            e.preventDefault();
-            setSuggestionIndex(suggestionIndex - 1);
+          } else if (e.keyCode === DOWN_KEY_CODE) {
+            halt();
+            if (hasNextSuggestion) setSuggestionIndex(suggestionIndex + 1);
+          } else if (e.keyCode === UP_KEY_CODE) {
+            halt();
+            if (hasPreviousSuggestion) setSuggestionIndex(suggestionIndex - 1);
           }
         }}
       />
@@ -131,28 +152,28 @@ export default function FilterInput({
           ""
         )}
       </Suggestion>
-      <div>
-        {hasPreviousSuggestion && (
-          <button
-            type="button"
-            onClick={() => {
-              setSuggestionIndex(suggestionIndex - 1);
-            }}
-          >
-            ^
-          </button>
-        )}
-        {hasNextSuggestion && (
-          <button
-            type="button"
-            onClick={() => {
-              setSuggestionIndex(suggestionIndex + 1);
-            }}
-          >
-            v
-          </button>
-        )}
-      </div>
+      {/* <div> */}
+      {/*  {hasPreviousSuggestion && ( */}
+      {/*    <button */}
+      {/*      type="button" */}
+      {/*      onClick={() => { */}
+      {/*        setSuggestionIndex(suggestionIndex - 1); */}
+      {/*      }} */}
+      {/*    > */}
+      {/*      ^ */}
+      {/*    </button> */}
+      {/*  )} */}
+      {/*  {hasNextSuggestion && ( */}
+      {/*    <button */}
+      {/*      type="button" */}
+      {/*      onClick={() => { */}
+      {/*        setSuggestionIndex(suggestionIndex + 1); */}
+      {/*      }} */}
+      {/*    > */}
+      {/*      v */}
+      {/*    </button> */}
+      {/*  )} */}
+      {/* </div> */}
     </Wrapper>
   );
 }
