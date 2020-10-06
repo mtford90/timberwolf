@@ -94,11 +94,6 @@ export default function FilterInput({
     setSuggestionIndex(0);
   }, [debouncedFilter]);
 
-  const onChange = useCallback(
-    (e) => setFilters((fs) => ({ ...fs, [source]: e.target.value })),
-    [setFilters]
-  );
-
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const hasNextSuggestion = Boolean(
@@ -124,7 +119,10 @@ export default function FilterInput({
         inputClassName={CLASS_NAME_AUTOSIZE_INPUT}
         value={filterForSource}
         autoFocus
-        onChange={onChange}
+        onChange={(e) => {
+          const value = e.target?.value || "";
+          return setFilters((fs) => ({ ...fs, [source]: value }));
+        }}
         placeholder="Search Logs"
         onKeyDown={(e) => {
           const halt = () => {

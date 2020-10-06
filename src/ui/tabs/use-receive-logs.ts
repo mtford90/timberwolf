@@ -21,6 +21,7 @@ export const LOGS_SUBSCRIPTION = gql`
     }
   }
 `;
+
 export const LOGS_QUERY = gql`
   query LogsQuery(
     $source: String!
