@@ -19,7 +19,10 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "preserve",
-    "rootDirs": ["tests", "src"],
+    "rootDirs": [
+      "tests",
+      "blah/src"
+    ],
     "baseUrl": "src"
   }
 }

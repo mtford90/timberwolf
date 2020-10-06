@@ -13,7 +13,7 @@
     "test": "jest --coverage",
     "precommit": "lint-staged",
     "codegen:main": "graphql-codegen --config codegen.yml",
-    "codegen:ui": "apollo client:codegen  --target=typescript --includes \"src/ui/**\"",
+    "codegen:ui": "apollo client:codegen  --target=typescript --includes \\\"src/ui/**\\\"",
     "rebuild:electron": "./node_modules/.bin/electron-rebuild"
   },
   "keywords": [],
