@@ -25,11 +25,11 @@ const Footer = styled.div``;
 
 const GlobalStyle = createGlobalStyle`
   * {
-    color: ${(props) => props.theme.colors.textColor};
+    color: ${(props: any) => props.theme.colors.textColor};
   }
   
   pre {
-    background-color: ${(props) => props.theme.colors.inputBackground};
+    background-color: ${(props: any) => props.theme.colors.inputBackground};
     padding: 0.5rem;
     font-size: 0.8em;
     white-space: pre-wrap;   
