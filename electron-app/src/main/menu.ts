@@ -1,5 +1,5 @@
 import defaultMenu from "electron-default-menu";
-import { app, dialog, Menu, shell } from "electron";
+import { app, Menu, shell } from "electron";
 import { Publishers } from "./server/publishers";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

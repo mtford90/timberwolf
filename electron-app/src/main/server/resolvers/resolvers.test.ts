@@ -14,7 +14,9 @@ describe("resolvers", () => {
   describe("query", () => {
     describe("numCpus", () => {
       it("should return the number of cpus", async () => {
-        const resolvers = initialiseGQLResolvers(deepMock<ResolverDependencies>({}));
+        const resolvers = initialiseGQLResolvers(
+          deepMock<ResolverDependencies>({})
+        );
 
         const response = resolvers.Query?.numCpus?.(
           parent,

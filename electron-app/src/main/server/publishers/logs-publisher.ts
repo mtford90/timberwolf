@@ -1,6 +1,7 @@
 import { PubSub } from "graphql-subscriptions";
 import fs from "mz/fs";
 import { random } from "lodash";
+import * as path from "path";
 import { Publisher } from "./publisher";
 import { Database } from "../database";
 import { WebsocketServer } from "../websockets";
@@ -48,7 +49,7 @@ export class LogsPublisher extends Publisher<"logs"> {
   private mockStdIn() {
     const env = process.env.NODE_ENV || "development";
     if (env === "development") {
-      fs.readFile("/Users/mtford/Playground/log/log.txt").then(
+      fs.readFile(path.resolve(__dirname, "../../log.txt")).then(
         (buffer) => {
           const logs = buffer.toString("utf8").split("\n");
           setInterval(() => {

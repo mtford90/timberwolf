@@ -98,7 +98,7 @@ module.exports = {
   ],
   overrides: [
     {
-      files: ["tests/**/*.ts", "*.test.tsx", "*.test.ts"],
+      files: ["**/tests/**/*.ts", "*.test.tsx", "*.test.ts"],
       rules: {
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/no-explicit-any": "off",
