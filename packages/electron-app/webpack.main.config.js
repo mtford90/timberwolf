@@ -43,5 +43,10 @@ module.exports = {
   ],
   resolve: {
     extensions: [".js", ".ts", ".jsx", ".tsx", ".css"],
+    modules: [
+      path.join(__dirname, '/node_modules'),
+      path.join(__dirname, '../../node_modules'),
+      path.join(__dirname, '../../node_modules/.pnpm/node_modules')
+    ]
   },
 };
