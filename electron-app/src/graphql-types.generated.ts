@@ -17,9 +17,15 @@ export type Scalars = {
 
 
 
+export type Source = {
+  __typename: 'Source';
+  id: Scalars['String'];
+  name?: Maybe<Scalars['String']>;
+};
+
 export type Log = {
   __typename: 'Log';
-  source: Scalars['String'];
+  source: Source;
   text: Scalars['String'];
   rowid: Scalars['Int'];
   timestamp: Scalars['DateTime'];
@@ -32,11 +38,17 @@ export type SystemInfo = {
   executablePath: Scalars['String'];
 };
 
+export enum SystemEvent {
+  NewTab = 'NEW_TAB',
+  CloseTab = 'CLOSE_TAB',
+  NewWindow = 'NEW_WINDOW'
+}
+
 export type Query = {
   __typename: 'Query';
   numCpus: Scalars['Int'];
   logs: Array<Log>;
-  source: Array<Scalars['String']>;
+  source: Array<Source>;
   numLogs: Scalars['Int'];
   suggest: Array<Scalars['String']>;
   systemInfo: SystemInfo;
@@ -44,7 +56,7 @@ export type Query = {
 
 
 export type QueryLogsArgs = {
-  source: Scalars['String'];
+  sourceId: Scalars['String'];
   limit: Scalars['Int'];
   beforeRowId?: Maybe<Scalars['Int']>;
   filter?: Maybe<Scalars['String']>;
@@ -69,12 +81,41 @@ export type Subscription = {
   __typename: 'Subscription';
   logs: Log;
   systemInfo: SystemInfo;
+  systemEvent: SystemEvent;
 };
 
 
 export type SubscriptionLogsArgs = {
-  source?: Maybe<Scalars['String']>;
+  sourceId?: Maybe<Scalars['String']>;
   filter?: Maybe<Scalars['String']>;
+};
+
+export type SourceInput = {
+  id: Scalars['String'];
+  name: Scalars['String'];
+};
+
+export type Mutation = {
+  __typename: 'Mutation';
+  createSource?: Maybe<Source>;
+  renameSource?: Maybe<Source>;
+  deleteSource: Scalars['String'];
+};
+
+
+export type MutationCreateSourceArgs = {
+  source: SourceInput;
+};
+
+
+export type MutationRenameSourceArgs = {
+  sourceId: Scalars['String'];
+  name: Scalars['String'];
+};
+
+
+export type MutationDeleteSourceArgs = {
+  sourceId: Scalars['String'];
 };
 
 
@@ -128,7 +169,7 @@ export type TypeResolveFn<TTypes, TParent = {}, TContext = {}> = (
   info: GraphQLResolveInfo
 ) => Maybe<TTypes> | Promise<Maybe<TTypes>>;
 
-export type IsTypeOfResolverFn<T = {}> = (obj: T, info: GraphQLResolveInfo) => boolean | Promise<boolean>;
+export type IsTypeOfResolverFn<T = {}, TContext = {}> = (obj: T, context: TContext, info: GraphQLResolveInfo) => boolean | Promise<boolean>;
 
 export type NextResolverFn<T> = () => Promise<T>;
 
@@ -145,13 +186,17 @@ export type ResolversTypes = {
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   Date: ResolverTypeWrapper<Scalars['Date']>;
   Time: ResolverTypeWrapper<Scalars['Time']>;
-  Log: ResolverTypeWrapper<Log>;
+  Source: ResolverTypeWrapper<Source>;
   String: ResolverTypeWrapper<Scalars['String']>;
+  Log: ResolverTypeWrapper<Log>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
   SystemInfo: ResolverTypeWrapper<SystemInfo>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
+  SystemEvent: SystemEvent;
   Query: ResolverTypeWrapper<{}>;
   Subscription: ResolverTypeWrapper<{}>;
+  SourceInput: SourceInput;
+  Mutation: ResolverTypeWrapper<{}>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -159,13 +204,16 @@ export type ResolversParentTypes = {
   DateTime: Scalars['DateTime'];
   Date: Scalars['Date'];
   Time: Scalars['Time'];
-  Log: Log;
+  Source: Source;
   String: Scalars['String'];
+  Log: Log;
   Int: Scalars['Int'];
   SystemInfo: SystemInfo;
   Boolean: Scalars['Boolean'];
   Query: {};
   Subscription: {};
+  SourceInput: SourceInput;
+  Mutation: {};
 };
 
 export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
@@ -180,25 +228,31 @@ export interface TimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes
   name: 'Time';
 }
 
+export type SourceResolvers<ContextType = any, ParentType extends ResolversParentTypes['Source'] = ResolversParentTypes['Source']> = {
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type LogResolvers<ContextType = any, ParentType extends ResolversParentTypes['Log'] = ResolversParentTypes['Log']> = {
-  source?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  source?: Resolver<ResolversTypes['Source'], ParentType, ContextType>;
   text?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   rowid?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   timestamp?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type SystemInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['SystemInfo'] = ResolversParentTypes['SystemInfo']> = {
   darkModeEnabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   websocketPort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   executablePath?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   numCpus?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  logs?: Resolver<Array<ResolversTypes['Log']>, ParentType, ContextType, RequireFields<QueryLogsArgs, 'source' | 'limit'>>;
-  source?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  logs?: Resolver<Array<ResolversTypes['Log']>, ParentType, ContextType, RequireFields<QueryLogsArgs, 'sourceId' | 'limit'>>;
+  source?: Resolver<Array<ResolversTypes['Source']>, ParentType, ContextType>;
   numLogs?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumLogsArgs, 'source'>>;
   suggest?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QuerySuggestArgs, 'source' | 'prefix'>>;
   systemInfo?: Resolver<ResolversTypes['SystemInfo'], ParentType, ContextType>;
@@ -207,16 +261,25 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
   logs?: SubscriptionResolver<ResolversTypes['Log'], "logs", ParentType, ContextType, RequireFields<SubscriptionLogsArgs, never>>;
   systemInfo?: SubscriptionResolver<ResolversTypes['SystemInfo'], "systemInfo", ParentType, ContextType>;
+  systemEvent?: SubscriptionResolver<ResolversTypes['SystemEvent'], "systemEvent", ParentType, ContextType>;
+};
+
+export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+  createSource?: Resolver<Maybe<ResolversTypes['Source']>, ParentType, ContextType, RequireFields<MutationCreateSourceArgs, 'source'>>;
+  renameSource?: Resolver<Maybe<ResolversTypes['Source']>, ParentType, ContextType, RequireFields<MutationRenameSourceArgs, 'sourceId' | 'name'>>;
+  deleteSource?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationDeleteSourceArgs, 'sourceId'>>;
 };
 
 export type Resolvers<ContextType = any> = {
   DateTime?: GraphQLScalarType;
   Date?: GraphQLScalarType;
   Time?: GraphQLScalarType;
+  Source?: SourceResolvers<ContextType>;
   Log?: LogResolvers<ContextType>;
   SystemInfo?: SystemInfoResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
+  Mutation?: MutationResolvers<ContextType>;
 };
 
 

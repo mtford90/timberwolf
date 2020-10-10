@@ -17,7 +17,7 @@ module.exports = {
     }),
   ],
   coverageReporters: ["text", "html"],
-  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
+  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node", "sql"],
   setupFiles: ["./tests/setup.ts"],
   testMatch: [
     "**/tests/**/?(*.)+(spec|test).[jt]s?(x)",
@@ -29,4 +29,8 @@ module.exports = {
       "<rootDir>/__mocks__/fileMock.js",
     "\\.(css|less)$": "<rootDir>/__mocks__/styleMock.js",
   },
+  transform: {
+    "^.+\\.[t|j]sx?$": "babel-jest",
+    "^.+\\.sql$": "<rootDir>/tests/fileLoader.js",
+  }
 };

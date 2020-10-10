@@ -31,19 +31,30 @@ export function initialiseGQLResolvers({
       numCpus() {
         return os.cpus().length;
       },
-      logs(parent, { source, limit, beforeRowId, filter }) {
+      logs(parent, { sourceId, limit, beforeRowId, filter }) {
+        const source = database.getSource(sourceId);
+
+        if (!source) {
+          throw new Error("No such source");
+        }
+
         return database
-          .logs(source, { limit, beforeRowId, filter })
+          .getLogs(sourceId, { limit, beforeRowId, filter })
           .map((res) => ({
             __typename: "Log" as const,
             timestamp: new Date(res.timestamp),
             rowid: res.rowid,
             text: res.text,
-            source,
+            source: {
+              ...source,
+              __typename: "Source",
+            },
           }));
       },
       source() {
-        return database.sources();
+        return database
+          .getSources()
+          .map((s) => ({ ...s, __typename: "Source" }));
       },
       numLogs(parent, { source, beforeRowId, filter }) {
         return database.numLogs(source, beforeRowId, filter);
@@ -88,8 +99,8 @@ export function initialiseGQLResolvers({
               if (!match) return false;
             }
 
-            if (variables.source) {
-              const match = payload.logs.source === variables.source;
+            if (variables.sourceId) {
+              const match = payload.logs.source.id === variables.sourceId;
               if (!match) return false;
             }
 
@@ -99,6 +110,36 @@ export function initialiseGQLResolvers({
       },
       systemInfo: {
         subscribe: () => publishers.systemInfo.asyncIterator(),
+      },
+      systemEvent: {
+        subscribe: () => publishers.systemEvents.asyncIterator(),
+      },
+    },
+
+    Mutation: {
+      createSource(parent, { source }) {
+        database.upsertSource(source.id, source.name);
+        // The command line client should never be able to override the name of the tab, since it was set in the client
+        // TODO.TEST: Test that the mutation overrides the name
+        database.overrideSourceName(source.id, source.name);
+        return {
+          ...source,
+          __typename: "Source",
+        };
+      },
+      deleteSource(parent, { sourceId }) {
+        database.deleteSource(sourceId);
+        return sourceId;
+      },
+      renameSource(parent, { sourceId, name }) {
+        database.overrideSourceName(sourceId, name);
+        const source = database.getSource(sourceId);
+        return source
+          ? {
+              ...source,
+              __typename: "Source",
+            }
+          : null;
       },
     },
   };

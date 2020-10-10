@@ -14,7 +14,7 @@ import { useNumLogs } from "./use-num-logs";
 
 export const LOGS_SUBSCRIPTION = gql`
   subscription LogsSubscription($source: String, $filter: String) {
-    logs(source: $source, filter: $filter) {
+    logs(sourceId: $source, filter: $filter) {
       rowid
       timestamp
       text
@@ -30,7 +30,7 @@ export const LOGS_QUERY = gql`
     $filter: String
   ) {
     logs(
-      source: $source
+      sourceId: $source
       limit: $limit
       beforeRowId: $beforeRowId
       filter: $filter

@@ -4,15 +4,13 @@
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL query operation: SourcesQuery
+// GraphQL mutation operation: DeleteSourceMutation
 // ====================================================
 
-export interface SourcesQuery_source {
-  __typename: "Source";
-  id: string;
-  name: string | null;
+export interface DeleteSourceMutation {
+  deleteSource: string;
 }
 
-export interface SourcesQuery {
-  source: SourcesQuery_source[];
+export interface DeleteSourceMutationVariables {
+  id: string;
 }

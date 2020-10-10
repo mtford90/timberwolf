@@ -104,6 +104,7 @@ describe("logs publisher", () => {
 
         const message: WebsocketMessage = {
           name: "my logger",
+          id: "my logger",
           timestamp,
           text: "a log",
         };
@@ -144,6 +145,7 @@ describe("logs publisher", () => {
 
         const message: WebsocketMessage = {
           name: websocketName,
+          id: websocketName,
           timestamp,
           text: "a log\nanother log",
         };

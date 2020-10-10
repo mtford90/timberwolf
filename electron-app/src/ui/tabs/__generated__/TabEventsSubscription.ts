@@ -3,16 +3,12 @@
 // @generated
 // This file was automatically generated and should not be edited.
 
+import { SystemEvent } from "./../../../../__generated__/globalTypes";
+
 // ====================================================
-// GraphQL query operation: SourcesQuery
+// GraphQL subscription operation: TabEventsSubscription
 // ====================================================
 
-export interface SourcesQuery_source {
-  __typename: "Source";
-  id: string;
-  name: string | null;
-}
-
-export interface SourcesQuery {
-  source: SourcesQuery_source[];
+export interface TabEventsSubscription {
+  systemEvent: SystemEvent;
 }
