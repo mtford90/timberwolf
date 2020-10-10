@@ -14,7 +14,7 @@ import { useNumLogs } from "./use-num-logs";
 
 export const LOGS_SUBSCRIPTION = gql`
   subscription LogsSubscription($source: String, $filter: String) {
-    logs(source: $source, filter: $filter) {
+    logs(sourceId: $source, filter: $filter) {
       rowid
       timestamp
       text
@@ -30,7 +30,7 @@ export const LOGS_QUERY = gql`
     $filter: String
   ) {
     logs(
-      source: $source
+      sourceId: $source
       limit: $limit
       beforeRowId: $beforeRowId
       filter: $filter
@@ -74,10 +74,14 @@ export function useReceiveLogs({
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data) return prev;
 
+        const newLog = subscriptionData.data.logs;
+
+        if (!newLog) return prev;
+
         const previous = prev.logs || [];
 
         return {
-          logs: [subscriptionData.data.logs, ...previous],
+          logs: [newLog, ...previous],
         };
       },
       variables: {

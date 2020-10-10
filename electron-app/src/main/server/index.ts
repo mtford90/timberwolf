@@ -1,7 +1,5 @@
 import { ipcMain } from "electron";
 import { makeExecutableSchema } from "graphql-tools";
-import fs from "fs";
-import path from "path";
 import { values } from "lodash";
 import {
   initialGraphqlIpc,
@@ -11,6 +9,8 @@ import { initPublishers } from "./publishers";
 import { initialiseGQLResolvers } from "./resolvers";
 import { Database } from "./database";
 import { WebsocketServer } from "./websockets";
+
+import schema from "./schema.graphql";
 
 type ConfigureServerOptions = {
   database: Database;
@@ -35,9 +35,7 @@ export default function configureServer({
 
   const link = createApolloSchemaLink({
     schema: makeExecutableSchema({
-      typeDefs: fs
-        .readFileSync(path.resolve(__dirname, "./schema.graphql"))
-        .toString(),
+      typeDefs: schema,
       resolvers: resolvers as never,
     }),
   });

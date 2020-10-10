@@ -1,4 +1,5 @@
 import { PubSub } from "graphql-subscriptions";
+import { Required } from "utility-types";
 import { Trigger } from "../resolvers/types";
 import { Subscription } from "../../../graphql-types.generated";
 
@@ -22,7 +23,9 @@ export abstract class Publisher<T extends Trigger> {
   }
 
   asyncIterator() {
-    return this.pubSub.asyncIterator<Record<T, Subscription[T]>>(this.trigger);
+    return this.pubSub.asyncIterator<Record<T, Required<Subscription>[T]>>(
+      this.trigger
+    );
   }
 
   [Symbol.asyncIterator]() {

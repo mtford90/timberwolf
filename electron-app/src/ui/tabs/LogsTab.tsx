@@ -7,6 +7,11 @@ import { useUnseen } from "./use-unseen";
 import { useLogs } from "./use-logs";
 
 import DoubleDownArrowIcon from "./double-down-arrow.svg";
+import FilterInput from "../components/FilterInput";
+import { TimberwolfLogo } from "../components/TimberwolfLogo";
+import { Example } from "../components/Example";
+import { Container } from "../components/Container";
+import { useWebsocketPort } from "../lib/api/use-websocket-port";
 
 const LogRows = styled.div`
   margin-top: auto;
@@ -16,7 +21,7 @@ const LogRows = styled.div`
   flex: 1;
 `;
 
-const Container = styled.div`
+const ScrollContainer = styled.div`
   display: flex;
   flex: 1;
   overflow-y: scroll;
@@ -64,7 +69,7 @@ const LoadMoreButton = styled.button`
 
   text-decoration: underline;
   &:hover {
-    background-color: ${(props) => props.theme.colors.transparentHover};
+    background-color: ${(props) => props.theme.colors.hover.main};
   }
 
   &:focus {
@@ -82,10 +87,14 @@ const DownArrowContainer = styled.span`
 export default function LogsTab({
   filter,
   source,
+  onFilterChange,
 }: {
   filter: string;
   source: string;
+  onFilterChange: (filter: string) => void;
 }) {
+  const { loading, port } = useWebsocketPort();
+
   const unseen = useUnseen<number>();
 
   const { scroller, ref } = useScrollController();
@@ -119,36 +128,53 @@ export default function LogsTab({
     onScrolledToRow: unseen.clear,
   });
 
-  return (
-    <Container ref={ref} onScroll={onScroll}>
-      <LogRows>
-        {logs.hasMore && (
-          <LoadMoreButton
-            type="button"
-            onClick={() => logs.fetchMore()}
-            disabled={logs.loadingMore}
-          >
-            Load more...
-          </LoadMoreButton>
-        )}
-        {logs.logs.map((log) => (
-          <LogRow key={log.rowid} row={log} />
-        ))}
-      </LogRows>
-      <NewRowsContainer>
-        {unseen.items.length ? (
-          <NewLogsIndicatorContainer
-            onClick={() => {
-              scroller?.scrollToBottom();
-            }}
-          >
-            {unseen.items.length} new items
-            <DownArrowContainer>
-              <DoubleDownArrowIcon />
-            </DownArrowContainer>
-          </NewLogsIndicatorContainer>
-        ) : null}
-      </NewRowsContainer>
+  return logs.logs.length ? (
+    <>
+      <ScrollContainer ref={ref} onScroll={onScroll}>
+        <LogRows>
+          {logs.hasMore && (
+            <LoadMoreButton
+              type="button"
+              onClick={() => logs.fetchMore()}
+              disabled={logs.loadingMore}
+            >
+              Load more...
+            </LoadMoreButton>
+          )}
+          {logs.logs.map((log) => (
+            <LogRow key={log.rowid} row={log} />
+          ))}
+        </LogRows>
+        <NewRowsContainer>
+          {unseen.items.length ? (
+            <NewLogsIndicatorContainer
+              onClick={() => {
+                scroller?.scrollToBottom();
+              }}
+            >
+              {unseen.items.length} new items
+              <DownArrowContainer>
+                <DoubleDownArrowIcon />
+              </DownArrowContainer>
+            </NewLogsIndicatorContainer>
+          ) : null}
+        </NewRowsContainer>
+      </ScrollContainer>
+      <div>
+        <FilterInput
+          source={source}
+          onChangeText={(text) => {
+            onFilterChange(text);
+          }}
+        />
+      </div>
+    </>
+  ) : (
+    <Container>
+      <TimberwolfLogo />
+      {Boolean(!loading && port) && (
+        <Example title="Pipe to stdin">{`cat /path/to/log.txt | timberwolf --id ${source} --port ${port}`}</Example>
+      )}
     </Container>
   );
 }

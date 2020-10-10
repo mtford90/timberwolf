@@ -15,7 +15,7 @@ export interface LogsSubscription_logs {
 }
 
 export interface LogsSubscription {
-  logs: LogsSubscription_logs;
+  logs: LogsSubscription_logs | null;
 }
 
 export interface LogsSubscriptionVariables {

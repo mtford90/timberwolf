@@ -7,6 +7,7 @@ describe("websocket message validation", () => {
         it("should return message", async () => {
           const payload = {
             name: "my tab",
+            id: "my tab",
             timestamp: 2,
             text: "[debug] hello",
           };
@@ -21,6 +22,7 @@ describe("websocket message validation", () => {
         it("should add a timestamp & return message", async () => {
           const payload = {
             name: "my tab",
+            id: "my tab",
             text: "[debug] hello",
           };
 
@@ -35,9 +37,7 @@ describe("websocket message validation", () => {
 
     describe("when invalid", () => {
       it("should reject", async () => {
-        const payload = {
-          text: "[debug] hello",
-        };
+        const payload = {};
 
         await expect(
           parseMessage(JSON.stringify(payload))
