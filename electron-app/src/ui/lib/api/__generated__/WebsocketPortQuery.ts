@@ -4,15 +4,14 @@
 // This file was automatically generated and should not be edited.
 
 // ====================================================
-// GraphQL query operation: SourcesQuery
+// GraphQL query operation: WebsocketPortQuery
 // ====================================================
 
-export interface SourcesQuery_source {
-  __typename: "Source";
-  id: string;
-  name: string | null;
+export interface WebsocketPortQuery_systemInfo {
+  __typename: "SystemInfo";
+  websocketPort: number | null;
 }
 
-export interface SourcesQuery {
-  source: SourcesQuery_source[];
+export interface WebsocketPortQuery {
+  systemInfo: WebsocketPortQuery_systemInfo;
 }

@@ -2,8 +2,13 @@ scalar DateTime
 scalar Date
 scalar Time
 
+type Source {
+    id: String!
+    name: String
+}
+
 type Log {
-    source: String!
+    source: Source!
     text: String!
     rowid: Int!
     timestamp: DateTime!
@@ -15,16 +20,34 @@ type SystemInfo {
     executablePath: String!
 }
 
+enum SystemEvent {
+    NEW_TAB
+    CLOSE_TAB
+    NEW_WINDOW
+}
+
 type Query {
     numCpus: Int!
-    logs(source: String!, limit: Int!, beforeRowId: Int, filter: String): [Log!]!
-    source: [String!]!
+    logs(sourceId: String!, limit: Int!, beforeRowId: Int, filter: String): [Log!]!
+    source: [Source!]!
     numLogs(source: String!, beforeRowId: Int, filter: String): Int!
     suggest(source: String!, prefix: String!, limit: Int, offset: Int): [String!]!
     systemInfo: SystemInfo!
 }
 
 type Subscription {
-    logs(source: String, filter: String): Log!
+    logs(sourceId: String, filter: String): Log!
     systemInfo: SystemInfo!
+    systemEvent: SystemEvent!
+}
+
+input SourceInput {
+    id: String!
+    name: String!
+}
+
+type Mutation {
+    createSource(source: SourceInput!): Source
+    renameSource(sourceId: String!, name: String!): Source
+    deleteSource(sourceId: String!): String!
 }

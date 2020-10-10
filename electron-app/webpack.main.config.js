@@ -27,7 +27,11 @@ module.exports = {
         },
       },
       ...require("./webpack.rules"),
-      { test: /\.graphql?$/, loader: "webpack-graphql-loader" }
+      { test: /\.graphql?$/, loader: "webpack-graphql-loader" },
+      {
+        test: /\.sql$/i,
+        use: 'raw-loader',
+      }
     ],
   },
   plugins: [

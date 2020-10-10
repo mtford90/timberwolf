@@ -7,6 +7,17 @@
 // START Enums and Input Objects
 //==============================================================
 
+export enum SystemEvent {
+  CLOSE_TAB = "CLOSE_TAB",
+  NEW_TAB = "NEW_TAB",
+  NEW_WINDOW = "NEW_WINDOW",
+}
+
+export interface SourceInput {
+  id: string;
+  name: string;
+}
+
 //==============================================================
 // END Enums and Input Objects
 //==============================================================

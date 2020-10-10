@@ -1,25 +1,13 @@
 import * as React from "react";
 import { useEffect } from "react";
-import styled from "styled-components";
 import gql from "graphql-tag";
 import { useQuery } from "@apollo/client";
-
-import WolfIcon from "./wolf.svg";
 import { EmptyScreenSubscription } from "./__generated__/EmptyScreenSubscription";
 import { EmptyScreenQuery } from "./__generated__/EmptyScreenQuery";
-import { Example } from "./Example";
-
-const EmptyContainer = styled.div`
-  display: flex;
-  flex: 1;
-  justify-content: center;
-  flex-direction: column;
-  padding-left: 1rem;
-  padding-right: 1rem;
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
-`;
+import { Example } from "../components/Example";
+import Button from "../components/Button";
+import { TimberwolfLogo } from "../components/TimberwolfLogo";
+import { Container } from "../components/Container";
 
 const EMPTY_SCREEN_QUERY = gql`
   query EmptyScreenQuery {
@@ -39,15 +27,13 @@ const EMPTY_SCREEN_SUBSCRIPTION = gql`
   }
 `;
 
-const Icon = styled(WolfIcon)`
-  width: 80px;
-  height: 80px;
-  margin-bottom: 1em;
-  margin-left: auto;
-  margin-right: auto;
-`;
-
-export function EmptyScreen({ loading }: { loading?: boolean }) {
+export function EmptyScreen({
+  loading,
+  onAddTab,
+}: {
+  loading?: boolean;
+  onAddTab: () => void;
+}) {
   const { loading: queryLoading, data, subscribeToMore } = useQuery<
     EmptyScreenQuery
   >(EMPTY_SCREEN_QUERY);
@@ -70,21 +56,13 @@ export function EmptyScreen({ loading }: { loading?: boolean }) {
     !data?.systemInfo.websocketPort || queryLoading || loading;
 
   return (
-    <EmptyContainer>
-      <Icon />
+    <Container>
+      <TimberwolfLogo />
       {showLoadingIndicator ? (
         <div>Loading</div>
       ) : (
         <>
-          <div
-            style={{
-              textAlign: "center",
-              fontSize: "0.9em",
-              marginBottom: "1rem",
-            }}
-          >
-            Nothing to see here
-          </div>
+          <Button label="Add New Datasource" onClick={onAddTab} centred />
           <Example
             title="Try piping from stdin"
             subtitle="Note: this will open a new window"
@@ -99,6 +77,6 @@ wscat -c ws://localhost:${data?.systemInfo?.websocketPort}
           </Example>
         </>
       )}
-    </EmptyContainer>
+    </Container>
   );
 }

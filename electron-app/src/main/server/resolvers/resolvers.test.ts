@@ -3,6 +3,7 @@ import { PubSub } from "graphql-subscriptions";
 import { initialiseGQLResolvers, ResolverDependencies } from "./index";
 import { deepMock } from "../../../../tests/util";
 import { Subscription } from "../../../graphql-types.generated";
+import { LogRow } from "../database";
 
 const resolveInfo = deepMock<GraphQLResolveInfo>({});
 const context = {};
@@ -33,7 +34,7 @@ describe("resolvers", () => {
         const mockLines = [
           {
             rowid: 1,
-            source: "/path/to/something",
+            source_id: "/path/to/something",
             timestamp: 343,
             text: "xy",
           },
@@ -41,7 +42,7 @@ describe("resolvers", () => {
 
         const deps = deepMock<ResolverDependencies>({
           database: {
-            logs: jest.fn(() => mockLines),
+            getLogs: jest.fn(() => mockLines),
           },
         });
 
@@ -49,7 +50,7 @@ describe("resolvers", () => {
 
         const response = resolvers.Query?.logs?.(
           parent,
-          { limit: 10, beforeRowId: 10, source: "stdin" },
+          { limit: 10, beforeRowId: 10, sourceId: "stdin" },
           context,
           resolveInfo
         );
@@ -69,17 +70,17 @@ describe("resolvers", () => {
         });
 
         it("should call with the correct params", async () => {
-          expect(deps.database.logs).toBeCalledWith("stdin", {
+          expect(deps.database.getLogs).toBeCalledWith("stdin", {
             limit: 10,
             beforeRowId: 10,
           });
         });
       });
       describe("with filter", () => {
-        const mockLines = [
+        const mockLines: LogRow[] = [
           {
             rowid: 1,
-            source: "/path/to/something",
+            source_id: "/path/to/something",
             timestamp: 343,
             text: "xy",
           },
@@ -87,7 +88,7 @@ describe("resolvers", () => {
 
         const deps = deepMock<ResolverDependencies>({
           database: {
-            logs: jest.fn(() => mockLines),
+            getLogs: jest.fn(() => mockLines),
           },
         });
 
@@ -95,7 +96,7 @@ describe("resolvers", () => {
 
         const response = resolvers.Query?.logs?.(
           parent,
-          { limit: 10, beforeRowId: 10, filter: "yo", source: "stdin" },
+          { limit: 10, beforeRowId: 10, filter: "yo", sourceId: "stdin" },
           context,
           resolveInfo
         );
@@ -115,7 +116,7 @@ describe("resolvers", () => {
         });
 
         it("should call with the correct params", async () => {
-          expect(deps.database.logs).toBeCalledWith("stdin", {
+          expect(deps.database.getLogs).toBeCalledWith("stdin", {
             limit: 10,
             filter: "yo",
             beforeRowId: 10,
@@ -178,7 +179,7 @@ describe("resolvers", () => {
             const iterator: AsyncIterator<{ stdin: string }> = logs.subscribe(
               parent,
               {
-                source: "stdin",
+                sourceId: "stdin",
               },
               context,
               resolveInfo
@@ -186,7 +187,7 @@ describe("resolvers", () => {
 
             const payload = {
               logs: {
-                source: "stdin",
+                sourceId: "stdin",
                 text: "hi",
               },
             };
@@ -226,7 +227,7 @@ describe("resolvers", () => {
             const iterator = stdin.subscribe(
               parent,
               {
-                source: "stdin",
+                sourceId: "stdin",
                 filter: "bl",
               },
               context,
@@ -239,7 +240,10 @@ describe("resolvers", () => {
                 text: "123",
                 timestamp: 0,
                 rowid: 1,
-                source: "stdin",
+                source: {
+                  id: "stdin",
+                  __typename: "Source",
+                },
               },
             };
 
@@ -249,7 +253,10 @@ describe("resolvers", () => {
                 text: "blah",
                 timestamp: 0,
                 rowid: 2,
-                source: "stdin",
+                source: {
+                  id: "stdin",
+                  __typename: "Source",
+                },
               },
             };
 

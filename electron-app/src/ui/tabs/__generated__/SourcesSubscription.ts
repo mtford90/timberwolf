@@ -7,9 +7,15 @@
 // GraphQL subscription operation: SourcesSubscription
 // ====================================================
 
+export interface SourcesSubscription_logs_source {
+  __typename: "Source";
+  id: string;
+  name: string | null;
+}
+
 export interface SourcesSubscription_logs {
   __typename: "Log";
-  source: string;
+  source: SourcesSubscription_logs_source;
 }
 
 export interface SourcesSubscription {
