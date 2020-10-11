@@ -1,6 +1,6 @@
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 
-   module.exports = [
+  module.exports = [
   new ForkTsCheckerWebpackPlugin({
     // async: false,
   }),
