@@ -10,6 +10,10 @@ import DoubleDownArrowIcon from "./double-down-arrow.svg";
 
 const LogRows = styled.div`
   margin-top: auto;
+  display: flex;
+  align-items: stretch;
+  flex-direction: column;
+  flex: 1;
 `;
 
 const Container = styled.div`

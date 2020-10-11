@@ -9,10 +9,12 @@ import { Log } from "../../../graphql-types.generated";
 export const MIN_LOG_ROW_HEIGHT_PX = 20;
 
 const Container = styled.div`
-  width: 100vw;
+  flex: 1;
   min-height: ${MIN_LOG_ROW_HEIGHT_PX}px;
   font-size: 0.8em;
   line-height: 2em;
+  padding-left: 0.4rem;
+  padding-right: 0.4rem;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
   border-top-color: ${(props) => props.theme.colors.borderColor};

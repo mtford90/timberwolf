@@ -3,16 +3,18 @@
 ## Development
 
 ```bash
-npm install
-npm run rebuild:electron # builds native deps against electron's custom node version
-npm start
+cd electron-app
+yarn install
+yarn run rebuild:electron # builds native deps against electron's custom node version
+yarn start
 ```
 
 ### Testing
 
 ```bash
-npm rebuild # builds native deps against node version used during tests
-npm test
+cd electron-app
+yarn rebuild # builds native deps against node version used during tests
+yarn test
 ```
 
 ## Package & Run
@@ -41,5 +43,3 @@ cat ./log.txt | ./out/Timberwolf-darwin-x64/Timberwolf.app/Contents/MacOS/Timber
 # open a websocket client to send logs
 wscat -c ws://localhost:8080
 ```
-
-
