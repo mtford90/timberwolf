@@ -1,6 +1,6 @@
 import gql from "graphql-tag";
 import { useApolloClient, useQuery } from "@apollo/client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { sortBy, uniqBy } from "lodash";
 import { v4 as guid } from "uuid";
 import { SourcesQuery } from "./__generated__/SourcesQuery";
@@ -41,21 +41,25 @@ function sourceToTab(source: Source): Tab {
   };
 }
 
+function useTabs() {
+  const { data } = useQuery<SourcesQuery>(SOURCES_QUERY);
+
+  return useMemo(() => data?.source?.map(sourceToTab) || [], [data]);
+}
+
 /**
  * Hook to provide list of tabs to render.
  *
  * Provides new tabs as necessary depending on the source of incoming data
  */
-export function useTabs() {
-  const { data } = useQuery<SourcesQuery>(SOURCES_QUERY);
+export function useTabsApi() {
+  const sources = useTabs();
+
   const api = useSourcesAPI();
 
   const client = useApolloClient();
 
-  const [tabs, setTabs] = useLocalStorage<Tab[]>(
-    "tabs",
-    (data?.source ?? []).map(sourceToTab)
-  );
+  const [tabs, setTabs] = useLocalStorage<Tab[]>("tabs", sources);
 
   const [selectedTabId, setSelectedTabId] = useLocalStorage<string | null>(
     "selectedTab",
@@ -78,17 +82,17 @@ export function useTabs() {
   );
 
   useEffect(() => {
-    if (data?.source && data?.source.length) {
+    if (sources && sources.length) {
       setTabs((prevTabs) => {
         // TODO.TEST: Order preservation
-        return sortBy(data.source.map(sourceToTab), (t) =>
+        return sortBy(sources, (t) =>
           prevTabs.findIndex((pt) => pt.id === t.id)
         );
       });
-      const firstTab = data.source[0];
+      const firstTab = sources[0];
       ensureTab(firstTab.id);
     }
-  }, [data?.source]);
+  }, [sources, ensureTab, setTabs]);
 
   useSourcesSubscription(
     useCallback(
@@ -102,52 +106,62 @@ export function useTabs() {
     )
   );
 
-  const deleteTab = (id: string) => {
-    api.deleteSource(id);
-    setTabs((ss) => {
-      const index = ss.findIndex((s) => s.id === id);
+  const deleteTab = useCallback(
+    (id: string) => {
+      api.deleteSource(id);
+      setTabs((ss) => {
+        const index = ss.findIndex((s) => s.id === id);
 
-      if (index > -1) {
-        const newSources = [...ss];
-        newSources.splice(index, 1);
+        if (index > -1) {
+          const newSources = [...ss];
+          newSources.splice(index, 1);
 
-        if (selectedTabId === id) {
-          // Replace the selected tab with the tab that now exists at the same index, or else choose the prior
-          const newSelectedTab = newSources[index] || newSources[index - 1];
-          setSelectedTabId(newSelectedTab?.id ?? null);
+          setSelectedTabId((prevSelectedTabId) => {
+            if (id === prevSelectedTabId) {
+              const newSelectedTab = newSources[index] || newSources[index - 1];
+              return newSelectedTab?.id ?? null;
+            }
+
+            return prevSelectedTabId;
+          });
+
+          return newSources;
         }
+        return ss;
+      });
+    },
+    [api, setSelectedTabId, setTabs]
+  );
 
-        return newSources;
-      }
-      return ss;
-    });
-  };
+  const addTab = useCallback(
+    (name?: string) => {
+      const tabId = guid();
+      setTabs((ts) => {
+        if (name) {
+          api.createSource(tabId, name);
 
-  const addTab = (name?: string) => {
-    const tabId = guid();
-    setTabs((ts) => {
-      if (name) {
-        api.createSource(tabId, name);
+          return [...ts, { name, id: tabId }];
+        }
+        const numDefaultNamedTabs = ts.filter((t) =>
+          t.name.startsWith("New Tab")
+        ).length;
 
-        return [...ts, { name, id: tabId }];
-      }
-      const numDefaultNamedTabs = ts.filter((t) => t.name.startsWith("New Tab"))
-        .length;
+        const defaultName = numDefaultNamedTabs
+          ? `New Tab ${numDefaultNamedTabs + 1}`
+          : `New Tab`;
 
-      const defaultName = numDefaultNamedTabs
-        ? `New Tab ${numDefaultNamedTabs + 1}`
-        : `New Tab`;
+        api.createSource(tabId, defaultName);
 
-      api.createSource(tabId, defaultName);
+        return [...ts, { name: defaultName, id: tabId }];
+      });
 
-      return [...ts, { name: defaultName, id: tabId }];
-    });
+      setSelectedTabId(tabId);
+      setEditingTab(tabId);
 
-    setSelectedTabId(tabId);
-    setEditingTab(tabId);
-
-    return tabId;
-  };
+      return tabId;
+    },
+    [api, setSelectedTabId, setTabs]
+  );
 
   const renameTab = (id: string, name: string) => {
     api.renameSource(id, name);

@@ -31,7 +31,7 @@ export function useLocalStorage<T>(
         return valueToStore;
       });
     },
-    [setStoredValue]
+    [key]
   );
 
   return [storedValue, setValue];
