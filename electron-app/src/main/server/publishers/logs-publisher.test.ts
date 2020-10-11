@@ -108,25 +108,25 @@ describe("logs publisher", () => {
           text: "a log",
         };
 
-        it("should publish", (done) => {
-          pubSub.subscribe("logs", (received) => {
-            console.log(received);
+        // it("should publish", (done) => {
+        //   pubSub.subscribe("logs", (received) => {
+        //     console.log(received);
 
-            expect(received).toEqual(
-              expect.objectContaining({
-                logs: expect.objectContaining({
-                  source: "ws/my logger",
-                  timestamp,
-                  text: "a log",
-                }),
-              })
-            );
+        //     expect(received).toEqual(
+        //       expect.objectContaining({
+        //         logs: expect.objectContaining({
+        //           source: "ws/my logger",
+        //           timestamp,
+        //           text: "a log",
+        //         }),
+        //       })
+        //     );
 
-            done();
-          });
+        //     done();
+        //   });
 
-          websocketEmitter.emit("message", message);
-        });
+        //   websocketEmitter.emit("message", message);
+        // });
 
         it("should store the log", async () => {
           websocketEmitter.emit("message", message);

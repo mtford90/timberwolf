@@ -5,9 +5,12 @@
       "./electron-app",
       "./command-line-client"
     ],
-    "nohoist": ["**"]
+    "nohoist": [
+      "**"
+    ]
   },
   "scripts": {
+    "ci": "yarn lint && (cd electron-app && yarn test)",
     "precommit": "lint-staged",
     "lint": "./scripts/lint.sh"
   },

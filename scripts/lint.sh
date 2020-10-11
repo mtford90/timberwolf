@@ -1,3 +1,3 @@
 set -e
 
-eslint "./electron-app/{src,tests}/**/*.{ts,tsx}" --fix
+eslint "./electron-app/**/*.{js,jsx,ts,tsx}" --fix
