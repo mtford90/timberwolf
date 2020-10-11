@@ -5,13 +5,29 @@
       "./electron-app",
       "./command-line-client"
     ],
-    "nohoist": ["**"]
+    "nohoist": [
+      "**"
+    ]
   },
   "scripts": {
-    "precommit": "lint-staged",
-    "lint": "./scripts/lint.sh"
+    "ci": "yarn lint && (cd electron-app && yarn test)",
+    "postinstall": "husky install",
+    "lint": "eslint \"./electron-app/**/*.{js,jsx,ts,tsx}\"",
+    "lint:fix": "yarn lint --fix"
+  },
+  "lint-staged": {
+    "**/package.json": [
+      "sort-package-json",
+      "git add"
+    ],
+    "./electron-app/**/*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "git add"
+    ]
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^3.7.0",
+    "@typescript-eslint/parser": "^3.7.0",
     "eslint": "^7.5.0",
     "eslint-config-airbnb": "18.2.0",
     "eslint-config-prettier": "^6.7.0",
@@ -22,20 +38,10 @@
     "eslint-plugin-prettier": "^3.1.1",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-react": "^7.18.0",
-    "@typescript-eslint/eslint-plugin": "^3.7.0",
-    "@typescript-eslint/parser": "^3.7.0",
+    "husky": "^5.0.0-alpha.6",
     "lint-staged": "^10.0.4",
-    "typescript": "3.9.5",
-    "prettier": "^2.0.5"
-  },
-  "lint-staged": {
-    "package.json": [
-      "sort-package-json",
-      "git add"
-    ],
-    "{src,tests}/**/*.ts}": [
-      "eslint --fix",
-      "git add"
-    ]
+    "prettier": "^2.0.5",
+    "sort-package-json": "^1.46.0",
+    "typescript": "3.9.5"
   }
 }

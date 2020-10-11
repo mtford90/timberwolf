@@ -90,18 +90,20 @@ module.exports = {
     "jest/globals": true,
     browser: true,
   },
-  ignorePatterns: [
-    "webpack.*.js",
-    "*.config.js",
-    "*.generated.*",
-    "__generated__",
-  ],
+  ignorePatterns: ["*.generated.*", "__generated__"],
   overrides: [
     {
       files: ["**/tests/**/*.ts", "*.test.tsx", "*.test.ts"],
       rules: {
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/no-explicit-any": "off",
+      },
+    },
+    {
+      files: ["webpack.*.js", "*.config.js"],
+      rules: {
+        "@typescript-eslint/no-var-requires": "off",
+        "global-require": "off",
       },
     },
   ],
