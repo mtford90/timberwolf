@@ -30,12 +30,14 @@ async function render(client: ApolloClient<any>) {
 }
 
 describe("useTabs", () => {
+  let env: MockGQLEnvironment;
+
+  afterEach(() => {
+    env.client.stop();
+  });
+
   describe("when start with two tabs", () => {
     describe("and one tab is provided by the subscription", () => {
-      let env: MockGQLEnvironment;
-
-      beforeEach(async () => {});
-
       it("should render 3 tabs", async () => {
         env = await getMockGQLEnvironment(["stdin", "my log"]);
 
@@ -65,161 +67,161 @@ describe("useTabs", () => {
     });
   });
 
-  // describe("delete tab", () => {
-  //   describe("when a tab is deleted", () => {
-  //     describe("if there is a tab remaining", () => {
-  //       const mocks = getMockedApolloClient(["stdin", "ws:/my log"], null);
-  //
-  //       describe("if the tab to be deleted is selected", () => {
-  //         async function setup() {
-  //           const { result, waitFor, selectTab } = render(mocks);
-  //           await waitFor(() => Boolean(result.current.tabs.length));
-  //
-  //           expect(result.current.tabs).toHaveLength(2);
-  //
-  //           await selectTab("ws:/my log");
-  //           act(() => result.current.deleteTab("ws:/my log"));
-  //           await waitFor(() => result.current.tabs.length === 1);
-  //
-  //           return { result };
-  //         }
-  //
-  //         it("should only return the remaining tab", async () => {
-  //           const { result } = await setup();
-  //
-  //           expect(result.current.tabs[0]).toEqual({
-  //             name: "stdin",
-  //             id: "stdin",
-  //           });
-  //         });
-  //
-  //         it("should select the remaining tab", async () => {
-  //           const { result } = await setup();
-  //
-  //           expect(result.current.selectedTabId).toEqual("stdin");
-  //         });
-  //       });
-  //
-  //       describe("if the tab to be deleted is not selected", () => {
-  //         async function setup() {
-  //           const { result, waitFor, selectTab } = render(mocks);
-  //           await waitFor(() => Boolean(result.current.tabs.length));
-  //
-  //           expect(result.current.tabs).toHaveLength(2);
-  //
-  //           await selectTab("ws:/my log");
-  //           act(() => result.current.deleteTab("stdin"));
-  //           await waitFor(() => result.current.tabs.length === 1);
-  //
-  //           return { result };
-  //         }
-  //
-  //         it("should only return the remaining tab", async () => {
-  //           const { result } = await setup();
-  //
-  //           expect(result.current.tabs[0]).toEqual({
-  //             name: "ws:/my log",
-  //             id: "ws:/my log",
-  //           });
-  //         });
-  //
-  //         it("should select the remaining tab", async () => {
-  //           const { result } = await setup();
-  //
-  //           expect(result.current.selectedTabId).toEqual("ws:/my log");
-  //         });
-  //       });
-  //     });
-  //
-  //     describe("if it is the last tab remaining", () => {
-  //       const mocks = getMockedApolloClient(["ws:/my log"], null, [
-  //         "ws:/my log",
-  //       ]);
-  //
-  //       it("should no longer have a selected tab", async () => {
-  //         const { result, waitFor } = render(mocks);
-  //
-  //         console.log(0);
-  //         await waitFor(() => Boolean(result.current.tabs.length));
-  //
-  //         console.log(1);
-  //         expect(result.current.tabs).toHaveLength(1);
-  //         console.log(2);
-  //
-  //         act(() => result.current.deleteTab("ws:/my log"));
-  //
-  //         await waitFor(() => result.current.tabs.length === 0);
-  //
-  //         expect(result.current.selectedTabId).toBe(null);
-  //       });
-  //     });
-  //   });
-  // });
-  //
-  // describe("add tab", () => {
-  //   const mocks = getMockedApolloClient();
-  //
-  //   describe("when not specifying a name", () => {
-  //     it("should use default name", async () => {
-  //       const { result, waitForNextUpdate } = await render(mocks);
-  //       await waitForNextUpdate();
-  //       act(() => {
-  //         result.current.addTab();
-  //       });
-  //       expect(result.current.tabs).toEqual(
-  //         expect.arrayContaining([{ name: "New Tab", id: expect.anything() }])
-  //       );
-  //     });
-  //
-  //     describe("when adding a multiple new tabs with default name", () => {
-  //       it("should suffix with #2 & #3", async () => {
-  //         const { result, waitForNextUpdate } = await render(mocks);
-  //         await waitForNextUpdate();
-  //         act(() => {
-  //           result.current.addTab();
-  //         });
-  //         act(() => {
-  //           result.current.addTab();
-  //         });
-  //         act(() => {
-  //           result.current.addTab();
-  //         });
-  //         expect(result.current.tabs).toEqual(
-  //           expect.arrayContaining([
-  //             { name: "New Tab", id: expect.anything() },
-  //             { name: "New Tab 2", id: expect.anything() },
-  //             { name: "New Tab 3", id: expect.anything() },
-  //           ])
-  //         );
-  //       });
-  //     });
-  //   });
-  //
-  //   describe("when specifying a name", () => {
-  //     it("should use the name", async () => {
-  //       const { result, waitFor, waitForNextUpdate } = await render(mocks);
-  //       await waitForNextUpdate();
-  //       act(() => {
-  //         result.current.addTab("my tab");
-  //       });
-  //       await waitFor(() => Boolean(result.current.tabs.length));
-  //       expect(result.current.tabs).toEqual(
-  //         expect.arrayContaining([{ name: "my tab", id: expect.anything() }])
-  //       );
-  //     });
-  //   });
-  // });
-  //
-  // describe("rename tab", () => {
-  //   const mocks = getMockedApolloClient();
-  //
-  //   describe("when renaming an existing tab", () => {
-  //     it("should change the name", async () => {
-  //       const { result, waitFor } = render(mocks);
-  //       await waitFor(() => Boolean(result.current.tabs.length));
-  //       act(() => result.current.renameTab("ws:/my log", "My Tab"));
-  //       await waitFor(() => result.current.tabs[1].name === "My Tab");
-  //     });
-  //   });
-  // });
+  describe("delete tab", () => {
+    describe("when a tab is deleted", () => {
+      describe("if there is a tab remaining", () => {
+        beforeEach(async () => {
+          env = await getMockGQLEnvironment(["stdin", "ws:/my log"]);
+        });
+
+        describe("if the tab to be deleted is selected", () => {
+          async function setup() {
+            const { result, waitFor, selectTab } = await render(env.client);
+            await waitFor(() => Boolean(result.current.tabs.length));
+
+            expect(result.current.tabs).toHaveLength(2);
+
+            await selectTab("ws:/my log");
+            act(() => result.current.deleteTab("ws:/my log"));
+            await waitFor(() => result.current.tabs.length === 1);
+
+            return { result };
+          }
+
+          it("should only return the remaining tab", async () => {
+            const { result } = await setup();
+
+            expect(result.current.tabs[0]).toEqual({
+              name: "stdin",
+              id: "stdin",
+            });
+          });
+
+          it("should select the remaining tab", async () => {
+            const { result } = await setup();
+
+            expect(result.current.selectedTabId).toEqual("stdin");
+          });
+        });
+
+        describe("if the tab to be deleted is not selected", () => {
+          async function setup() {
+            const { result, waitFor, selectTab } = await render(env.client);
+            await waitFor(() => Boolean(result.current.tabs.length));
+
+            expect(result.current.tabs).toHaveLength(2);
+
+            await selectTab("ws:/my log");
+            act(() => result.current.deleteTab("stdin"));
+            await waitFor(() => result.current.tabs.length === 1);
+
+            return { result };
+          }
+
+          it("should only return the remaining tab", async () => {
+            const { result } = await setup();
+
+            expect(result.current.tabs[0]).toEqual({
+              name: "ws:/my log",
+              id: "ws:/my log",
+            });
+          });
+
+          it("should select the remaining tab", async () => {
+            const { result } = await setup();
+
+            expect(result.current.selectedTabId).toEqual("ws:/my log");
+          });
+        });
+      });
+
+      describe("if it is the last tab remaining", () => {
+        beforeEach(async () => {
+          env = await getMockGQLEnvironment(["ws:/my log"]);
+        });
+
+        it("should no longer have a selected tab", async () => {
+          const { result, waitFor } = await render(env.client);
+
+          await waitFor(() => Boolean(result.current.tabs.length));
+
+          expect(result.current.tabs).toHaveLength(1);
+
+          act(() => result.current.deleteTab("ws:/my log"));
+
+          await waitFor(() => result.current.tabs.length === 0);
+
+          expect(result.current.selectedTabId).toBe(null);
+        });
+      });
+    });
+  });
+
+  describe("add tab", () => {
+    beforeEach(async () => {
+      env = await getMockGQLEnvironment();
+    });
+
+    describe("when not specifying a name", () => {
+      it("should use default name", async () => {
+        const { result, waitForNextUpdate } = await render(env.client);
+        await waitForNextUpdate();
+        act(() => {
+          result.current.addTab();
+        });
+        expect(result.current.tabs).toEqual(
+          expect.arrayContaining([{ name: "New Tab", id: expect.anything() }])
+        );
+      });
+
+      describe("when adding a multiple new tabs with default name", () => {
+        it("should suffix with #2 & #3", async () => {
+          const { result, waitForNextUpdate } = await render(env.client);
+          await waitForNextUpdate();
+          act(() => {
+            result.current.addTab();
+          });
+          act(() => {
+            result.current.addTab();
+          });
+          act(() => {
+            result.current.addTab();
+          });
+          expect(result.current.tabs).toEqual(
+            expect.arrayContaining([
+              { name: "New Tab", id: expect.anything() },
+              { name: "New Tab 2", id: expect.anything() },
+              { name: "New Tab 3", id: expect.anything() },
+            ])
+          );
+        });
+      });
+    });
+
+    describe("when specifying a name", () => {
+      it("should use the name", async () => {
+        const { result, waitFor, waitForNextUpdate } = await render(env.client);
+        await waitForNextUpdate();
+        act(() => {
+          result.current.addTab("my tab");
+        });
+        await waitFor(() => Boolean(result.current.tabs.length));
+        expect(result.current.tabs).toEqual(
+          expect.arrayContaining([{ name: "my tab", id: expect.anything() }])
+        );
+      });
+    });
+  });
+
+  describe("rename tab", () => {
+    describe("when renaming an existing tab", () => {
+      it("should change the name", async () => {
+        env = await getMockGQLEnvironment(["stdin", "my log"]);
+        const { result, waitFor } = await render(env.client);
+        await waitFor(() => Boolean(result.current.tabs.length));
+        act(() => result.current.renameTab("my log", "My Tab"));
+        await waitFor(() => result.current.tabs[1].name === "My Tab");
+      });
+    });
+  });
 });

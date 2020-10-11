@@ -76,6 +76,9 @@ export async function getMockGQLEnvironment(initialSources: string[] = []) {
 
   return {
     client,
+    stop: () => {
+      server.stop();
+    },
     emitSystemEvent: (systemEvent: SystemEvent) => {
       return pubSub.publish("systemEvent", { systemEvent });
     },
