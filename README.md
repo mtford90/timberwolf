@@ -13,7 +13,7 @@ yarn start
 
 ```bash
 cd electron-app
-yarn rebuild # builds native deps against node version used during tests
+yarn install --force # builds native deps against node version used during tests
 yarn test
 ```
 
@@ -22,7 +22,7 @@ yarn test
 Creates a build in `out` folder.
 
 ```bash
-npm run package
+yarn run package
 
 # Open directly
 ./out/Timberwolf-darwin-x64/Timberwolf.app
