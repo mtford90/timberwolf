@@ -4,7 +4,6 @@ import { useState } from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import LogsTab from "./tabs/LogsTab";
-import FilterInput from "./components/FilterInput";
 import { useTabs } from "./tabs/use-tabs";
 import { EmptyScreen } from "./EmptyScreen";
 import Tab from "./tabs/Tab";

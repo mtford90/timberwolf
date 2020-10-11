@@ -1,5 +1,5 @@
 import gql from "graphql-tag";
-import { useApolloClient, useQuery, useSubscription } from "@apollo/client";
+import { useApolloClient, useQuery } from "@apollo/client";
 import { useEffect, useState } from "react";
 import { sortBy, uniqBy } from "lodash";
 import { v4 as guid } from "uuid";
