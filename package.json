@@ -12,7 +12,8 @@
   "scripts": {
     "ci": "yarn lint && (cd electron-app && yarn test)",
     "precommit": "lint-staged",
-    "lint": "./scripts/lint.sh"
+    "lint": "eslint \"./electron-app/**/*.{js,jsx,ts,tsx}\"",
+    "lint:fix": "yarn lint --fix"
   },
   "devDependencies": {
     "eslint": "^7.5.0",
