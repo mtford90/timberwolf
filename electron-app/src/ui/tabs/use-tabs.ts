@@ -1,15 +1,15 @@
 import gql from "graphql-tag";
 import { useApolloClient, useQuery } from "@apollo/client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { sortBy, uniqBy } from "lodash";
 import { v4 as guid } from "uuid";
 import { SourcesQuery } from "./__generated__/SourcesQuery";
-import { SourcesSubscription } from "./__generated__/SourcesSubscription";
 import { TabEventsSubscription } from "./__generated__/TabEventsSubscription";
 import { SystemEvent } from "../../../__generated__/globalTypes";
 import { Source } from "../../graphql-types.generated";
 import { useSourcesAPI } from "../lib/api/use-sources-api";
 import { useLocalStorage } from "../lib/hooks/use-local-storage";
+import { useSourcesSubscription } from "../lib/api/use-sources-subscription";
 
 /**
  * Returns all sources
@@ -19,20 +19,6 @@ export const SOURCES_QUERY = gql`
     source {
       id
       name
-    }
-  }
-`;
-
-/**
- * Subscribe to all incoming logs, extracting just the source (e.g. stdin/websocket)
- */
-export const SOURCES_SUBSCRIPTION = gql`
-  subscription SourcesSubscription {
-    logs {
-      source {
-        id
-        name
-      }
     }
   }
 `;
@@ -78,15 +64,18 @@ export function useTabs() {
 
   const [editingTab, setEditingTab] = useState<string | null>(null);
 
-  function ensureTab(firstTab: string) {
-    setSelectedTabId((tab) => {
-      if (!tab) {
-        return firstTab;
-      }
+  const ensureTab = useCallback(
+    (firstTab: string) => {
+      setSelectedTabId((tab) => {
+        if (!tab) {
+          return firstTab;
+        }
 
-      return tab;
-    });
-  }
+        return tab;
+      });
+    },
+    [setSelectedTabId]
+  );
 
   useEffect(() => {
     if (data?.source && data?.source.length) {
@@ -101,27 +90,17 @@ export function useTabs() {
     }
   }, [data?.source]);
 
-  // TODO: Why doesn't useSubscription work with tests & MockedProvider?
-  // I did originally use `useSubscription` for this - but it causes a strange error in the tests:
-  //   - Error: Rendered fewer hooks than expected. This may be caused by an accidental early return statement.
-  useEffect(() => {
-    const observable = client.subscribe<SourcesSubscription>({
-      query: SOURCES_SUBSCRIPTION,
-    });
-
-    const subscription = observable.subscribe((next) => {
-      // TODO: Handle errors in here
-      const latestSource = next.data?.logs.source;
-      if (latestSource) {
+  useSourcesSubscription(
+    useCallback(
+      (latestSource: Source) => {
         setTabs((s) =>
           uniqBy([...s, sourceToTab(latestSource)], (tab) => tab.id)
         );
         ensureTab(latestSource.id);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [client]);
+      },
+      [ensureTab, setTabs]
+    )
+  );
 
   const deleteTab = (id: string) => {
     api.deleteSource(id);

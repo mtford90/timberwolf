@@ -32,5 +32,6 @@ module.exports = {
   transform: {
     "^.+\\.[t|j]sx?$": "babel-jest",
     "^.+\\.sql$": "<rootDir>/tests/fileLoader.js",
+    "^.+\\.graphql": "<rootDir>/tests/graphqlLoader.js",
   },
 };

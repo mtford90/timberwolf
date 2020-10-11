@@ -36,9 +36,9 @@ type Query {
 }
 
 type Subscription {
-    logs(sourceId: String, filter: String): Log!
-    systemInfo: SystemInfo!
-    systemEvent: SystemEvent!
+    logs(sourceId: String, filter: String): Log
+    systemInfo: SystemInfo
+    systemEvent: SystemEvent
 }
 
 input SourceInput {

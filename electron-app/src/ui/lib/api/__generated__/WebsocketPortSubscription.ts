@@ -13,5 +13,5 @@ export interface WebsocketPortSubscription_systemInfo {
 }
 
 export interface WebsocketPortSubscription {
-  systemInfo: WebsocketPortSubscription_systemInfo;
+  systemInfo: WebsocketPortSubscription_systemInfo | null;
 }

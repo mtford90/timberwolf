@@ -19,5 +19,5 @@ export interface SourcesSubscription_logs {
 }
 
 export interface SourcesSubscription {
-  logs: SourcesSubscription_logs;
+  logs: SourcesSubscription_logs | null;
 }

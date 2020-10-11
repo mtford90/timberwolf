@@ -1,5 +1,6 @@
 import { useMutation } from "@apollo/client";
 import gql from "graphql-tag";
+import { useMemo } from "react";
 import {
   CreateSourceMutation,
   CreateSourceMutationVariables,
@@ -49,40 +50,43 @@ export function useSourcesAPI() {
     DeleteSourceMutationVariables
   >(DELETE_SOURCE_MUTATION);
 
-  return {
-    createSource: (id: string, name: string) => {
-      createSource({
-        variables: {
-          source: {
+  return useMemo(
+    () => ({
+      createSource: (id: string, name: string) => {
+        createSource({
+          variables: {
+            source: {
+              id,
+              name,
+            },
+          },
+        }).catch((err) => {
+          // TODO.ERROR: Deal with errors
+          console.error(err);
+        });
+      },
+      renameSource: (id: string, name: string) => {
+        renameSource({
+          variables: {
             id,
             name,
           },
-        },
-      }).catch((err) => {
-        // TODO.ERROR: Deal with errors
-        console.error(err);
-      });
-    },
-    renameSource: (id: string, name: string) => {
-      renameSource({
-        variables: {
-          id,
-          name,
-        },
-      }).catch((err) => {
-        // TODO.ERROR: Deal with errors
-        console.error(err);
-      });
-    },
-    deleteSource: (id: string) => {
-      deleteSource({
-        variables: {
-          id,
-        },
-      }).catch((err) => {
-        // TODO.ERROR: Deal with errors
-        console.error(err);
-      });
-    },
-  };
+        }).catch((err) => {
+          // TODO.ERROR: Deal with errors
+          console.error(err);
+        });
+      },
+      deleteSource: (id: string) => {
+        deleteSource({
+          variables: {
+            id,
+          },
+        }).catch((err) => {
+          // TODO.ERROR: Deal with errors
+          console.error(err);
+        });
+      },
+    }),
+    [createSource, deleteSource, renameSource]
+  );
 }

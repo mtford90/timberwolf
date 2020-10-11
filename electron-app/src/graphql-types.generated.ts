@@ -79,9 +79,9 @@ export type QuerySuggestArgs = {
 
 export type Subscription = {
   __typename: 'Subscription';
-  logs: Log;
-  systemInfo: SystemInfo;
-  systemEvent: SystemEvent;
+  logs?: Maybe<Log>;
+  systemInfo?: Maybe<SystemInfo>;
+  systemEvent?: Maybe<SystemEvent>;
 };
 
 
@@ -259,9 +259,9 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
 };
 
 export type SubscriptionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = {
-  logs?: SubscriptionResolver<ResolversTypes['Log'], "logs", ParentType, ContextType, RequireFields<SubscriptionLogsArgs, never>>;
-  systemInfo?: SubscriptionResolver<ResolversTypes['SystemInfo'], "systemInfo", ParentType, ContextType>;
-  systemEvent?: SubscriptionResolver<ResolversTypes['SystemEvent'], "systemEvent", ParentType, ContextType>;
+  logs?: SubscriptionResolver<Maybe<ResolversTypes['Log']>, "logs", ParentType, ContextType, RequireFields<SubscriptionLogsArgs, never>>;
+  systemInfo?: SubscriptionResolver<Maybe<ResolversTypes['SystemInfo']>, "systemInfo", ParentType, ContextType>;
+  systemEvent?: SubscriptionResolver<Maybe<ResolversTypes['SystemEvent']>, "systemEvent", ParentType, ContextType>;
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {

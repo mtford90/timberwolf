@@ -42,7 +42,7 @@ export function EmptyScreen({
     const unsubscribe = subscribeToMore<EmptyScreenSubscription>({
       document: EMPTY_SCREEN_SUBSCRIPTION,
       updateQuery: (prev, { subscriptionData }) => {
-        if (!subscriptionData.data) return prev;
+        if (!subscriptionData.data?.systemInfo) return prev;
         return {
           systemInfo: subscriptionData.data.systemInfo,
         };

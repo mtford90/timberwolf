@@ -74,10 +74,14 @@ export function useReceiveLogs({
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data) return prev;
 
+        const newLog = subscriptionData.data.logs;
+
+        if (!newLog) return prev;
+
         const previous = prev.logs || [];
 
         return {
-          logs: [subscriptionData.data.logs, ...previous],
+          logs: [newLog, ...previous],
         };
       },
       variables: {

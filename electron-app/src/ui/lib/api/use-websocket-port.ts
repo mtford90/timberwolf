@@ -29,7 +29,8 @@ export function useWebsocketPort() {
     const unsubscribe = subscribeToMore<WebsocketPortSubscription>({
       document: WEBSOCKET_PORT_SUBSCRIPTION,
       updateQuery: (prev, { subscriptionData }) => {
-        if (!subscriptionData.data) return prev;
+        if (!subscriptionData.data?.systemInfo) return prev;
+
         return {
           systemInfo: subscriptionData.data.systemInfo,
         };

@@ -3,12 +3,14 @@
 // @generated
 // This file was automatically generated and should not be edited.
 
-import { SystemEvent } from "./../../../../__generated__/globalTypes";
-
 // ====================================================
-// GraphQL subscription operation: TabEventsSubscription
+// GraphQL mutation operation: DeleteSourceMutation
 // ====================================================
 
-export interface TabEventsSubscription {
-  systemEvent: SystemEvent | null;
+export interface DeleteSourceMutation {
+  deleteSource: string;
+}
+
+export interface DeleteSourceMutationVariables {
+  id: string;
 }

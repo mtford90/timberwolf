@@ -13,5 +13,5 @@ export interface DarkModeSubscription_systemInfo {
 }
 
 export interface DarkModeSubscription {
-  systemInfo: DarkModeSubscription_systemInfo;
+  systemInfo: DarkModeSubscription_systemInfo | null;
 }

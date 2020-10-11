@@ -94,13 +94,17 @@ export function initialiseGQLResolvers({
             payload: Pick<Subscription, "logs">,
             variables: SubscriptionLogsArgs
           ) => {
+            const log = payload.logs;
+
+            if (!log) return false;
+
             if (variables.filter) {
-              const match = payload.logs.text.indexOf(variables.filter) > -1;
+              const match = log.text.indexOf(variables.filter) > -1;
               if (!match) return false;
             }
 
             if (variables.sourceId) {
-              const match = payload.logs.source.id === variables.sourceId;
+              const match = log.source.id === variables.sourceId;
               if (!match) return false;
             }
 
