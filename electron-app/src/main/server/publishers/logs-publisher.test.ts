@@ -62,7 +62,9 @@ describe("logs publisher", () => {
             expect.objectContaining({
               logs: expect.objectContaining({
                 text: "testing",
-                source: "stdin",
+                source: expect.objectContaining({
+                  id: "stdin",
+                }),
               }),
             })
           );
@@ -76,7 +78,7 @@ describe("logs publisher", () => {
         stdinEmitter.emit("data", Buffer.from(line, "utf8"));
         expect(database.insert).toHaveBeenCalledWith(
           expect.arrayContaining([
-            expect.objectContaining({ text: "testing", source: "stdin" }),
+            expect.objectContaining({ text: "testing", sourceId: "stdin" }),
           ])
         );
       });
@@ -87,10 +89,10 @@ describe("logs publisher", () => {
           stdinEmitter.emit("data", Buffer.from(incoming, "utf8"));
           expect(database.insert).toHaveBeenCalledWith(
             expect.arrayContaining([
-              expect.objectContaining({ text: "my log", source: "stdin" }),
+              expect.objectContaining({ text: "my log", sourceId: "stdin" }),
               expect.objectContaining({
                 text: "my second log",
-                source: "stdin",
+                sourceId: "stdin",
               }),
             ])
           );
@@ -133,7 +135,7 @@ describe("logs publisher", () => {
           websocketEmitter.emit("message", message);
 
           expect(database.insert).toHaveBeenCalledWith([
-            { text: "a log", source: "ws/my logger", timestamp },
+            { text: "a log", sourceId: "ws/my logger", timestamp },
           ]);
         });
       });
@@ -157,12 +159,12 @@ describe("logs publisher", () => {
               expect.objectContaining({
                 text: "a log",
                 timestamp,
-                source: `ws/${websocketName}`,
+                sourceId: `ws/${websocketName}`,
               }),
               expect.objectContaining({
                 text: "another log",
                 timestamp,
-                source: `ws/${websocketName}`,
+                sourceId: `ws/${websocketName}`,
               }),
             ])
           );

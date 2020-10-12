@@ -34,7 +34,7 @@ describe("resolvers", () => {
         const mockLines = [
           {
             rowid: 1,
-            source_id: "/path/to/something",
+            source_id: "stdin",
             timestamp: 343,
             text: "xy",
           },
@@ -43,6 +43,10 @@ describe("resolvers", () => {
         const deps = deepMock<ResolverDependencies>({
           database: {
             getLogs: jest.fn(() => mockLines),
+            getSource: jest.fn(() => ({
+              id: "stdin",
+              name: "stdin",
+            })),
           },
         });
 
@@ -61,7 +65,11 @@ describe("resolvers", () => {
               Object {
                 "__typename": "Log",
                 "rowid": 1,
-                "source": "stdin",
+                "source": Object {
+                  "__typename": "Source",
+                  "id": "stdin",
+                  "name": "stdin",
+                },
                 "text": "xy",
                 "timestamp": 1970-01-01T00:00:00.343Z,
               },
@@ -80,7 +88,7 @@ describe("resolvers", () => {
         const mockLines: LogRow[] = [
           {
             rowid: 1,
-            source_id: "/path/to/something",
+            source_id: "stdin",
             timestamp: 343,
             text: "xy",
           },
@@ -89,6 +97,7 @@ describe("resolvers", () => {
         const deps = deepMock<ResolverDependencies>({
           database: {
             getLogs: jest.fn(() => mockLines),
+            getSource: jest.fn(() => ({ id: "stdin", name: "stdin" })),
           },
         });
 
@@ -107,7 +116,11 @@ describe("resolvers", () => {
               Object {
                 "__typename": "Log",
                 "rowid": 1,
-                "source": "stdin",
+                "source": Object {
+                  "__typename": "Source",
+                  "id": "stdin",
+                  "name": "stdin",
+                },
                 "text": "xy",
                 "timestamp": 1970-01-01T00:00:00.343Z,
               },
@@ -187,7 +200,9 @@ describe("resolvers", () => {
 
             const payload = {
               logs: {
-                sourceId: "stdin",
+                source: {
+                  id: "stdin",
+                },
                 text: "hi",
               },
             };
