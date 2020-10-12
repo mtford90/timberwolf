@@ -80,7 +80,7 @@ module.exports = {
     "jest/no-hooks": "warn",
 
     "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "error",
+    "react-hooks/exhaustive-deps": "warn",
   },
   settings: {
     "import/resolver": {
