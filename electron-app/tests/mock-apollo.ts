@@ -1,47 +1,24 @@
 import { ApolloServer, PubSub } from "apollo-server";
-import { GraphQLDate, GraphQLDateTime, GraphQLTime } from "graphql-iso-date";
 import getPort from "get-port";
 import { ApolloClient, HttpLink, InMemoryCache, split } from "@apollo/client";
 import { WebSocketLink } from "@apollo/client/link/ws";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { random } from "lodash";
 import schema from "../src/main/server/schema.graphql";
-import { Log, Resolvers } from "../src/graphql-types.generated";
-import { SystemEvent } from "../__generated__/globalTypes";
+import { Resolvers } from "../src/graphql-types.generated";
 import { UnwrapPromise } from "../src/common/type-utils";
 
-export async function getMockGQLEnvironment() {
+/**
+ * Create a mocked apollo server for use during testing.
+ *
+ * Note: I tried all of MockedProvider, mockServer & SchemaLink and none worked well with subscriptions...
+ */
+export async function mockApollo(getResolvers: (pubSub: PubSub) => Resolvers) {
   const pubSub = new PubSub();
-  let sources: string[] = [];
-
-  const resolvers: Resolvers = {
-    DateTime: GraphQLDateTime,
-    Date: GraphQLDate,
-    Time: GraphQLTime,
-    Query: {
-      source() {
-        return sources.map((id) => ({ id, __typename: "Source" }));
-      },
-    },
-    Subscription: {
-      logs: {
-        subscribe: () => pubSub.asyncIterator(["logs"]),
-      },
-      systemEvent: {
-        subscribe: () => pubSub.asyncIterator(["systemEvent"]),
-      },
-      systemInfo: {
-        subscribe: () => pubSub.asyncIterator(["systemInfo"]),
-      },
-    },
-    Mutation: {
-      deleteSource: jest.fn((parent, { sourceId }) => sourceId),
-    },
-  };
 
   const server = new ApolloServer({
     typeDefs: schema,
-    resolvers: resolvers as never,
+    resolvers: getResolvers(pubSub) as never,
   });
 
   const port = await getPort({ port: random(2000, 50000) });
@@ -49,8 +26,6 @@ export async function getMockGQLEnvironment() {
   const { url, subscriptionsUrl, server: httpServer } = await server.listen(
     port
   );
-
-  console.log("listening", url, subscriptionsUrl);
 
   const httpLink = new HttpLink({ uri: url });
 
@@ -82,32 +57,12 @@ export async function getMockGQLEnvironment() {
 
   return {
     client,
-    resolvers,
-    emitSystemEvent: (systemEvent: SystemEvent) => {
-      return pubSub.publish("systemEvent", { systemEvent });
-    },
+    pubSub,
     stop: () => {
       server.stop();
       httpServer.close();
     },
-    emitLog: (log: Log) => {
-      setImmediate(() => {
-        pubSub
-          .publish("logs", {
-            logs: log,
-          })
-          .catch((err) => {
-            console.error(err);
-          });
-      });
-    },
-    setSources: (ss: string[]) => {
-      console.log("setSources", ss);
-      sources = ss;
-    },
   };
 }
 
-export type MockGQLEnvironment = UnwrapPromise<
-  ReturnType<typeof getMockGQLEnvironment>
->;
+export type MockGQLEnvironment = UnwrapPromise<ReturnType<typeof mockApollo>>;
