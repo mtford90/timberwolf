@@ -75,7 +75,9 @@ module.exports = {
     "jest/no-identical-title": "error",
     "jest/prefer-to-have-length": "warn",
     "jest/valid-expect": "error",
-    "jest/no-hooks": "error",
+
+    // Using these leads to global state which prevents test concurrency & stability
+    "jest/no-hooks": "warn",
 
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "error",
