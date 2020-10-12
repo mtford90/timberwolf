@@ -17,12 +17,10 @@
   },
   "lint-staged": {
     "**/package.json": [
-      "sort-package-json",
-      "git add"
+      "sort-package-json"
     ],
     "./electron-app/**/*.{js,jsx,ts,tsx}": [
-      "eslint --fix",
-      "git add"
+      "eslint --fix"
     ]
   },
   "devDependencies": {
@@ -38,11 +36,11 @@
     "eslint-plugin-prettier": "^3.1.1",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-react": "^7.18.0",
+    "eslint-plugin-react-hooks": "^4.1.2",
     "husky": "^5.0.0-alpha.6",
     "lint-staged": "^10.0.4",
     "prettier": "^2.0.5",
     "sort-package-json": "^1.46.0",
-    "typescript": "3.9.5",
-    "eslint-plugin-react-hooks": "^4.1.2"
+    "typescript": "3.9.5"
   }
 }
