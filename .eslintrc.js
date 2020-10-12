@@ -75,6 +75,7 @@ module.exports = {
     "jest/no-identical-title": "error",
     "jest/prefer-to-have-length": "warn",
     "jest/valid-expect": "error",
+    "jest/no-hooks": "error",
 
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "error",

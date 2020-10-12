@@ -13,6 +13,7 @@ import {
   DeleteSourceMutation,
   DeleteSourceMutationVariables,
 } from "../../tabs/__generated__/DeleteSourceMutation";
+import { usePromiseCancellation } from "../hooks/use-promise-cancellation";
 
 export const CREATE_SOURCE_MUTATION = gql`
   mutation CreateSourceMutation($source: SourceInput!) {
@@ -50,43 +51,42 @@ export function useSourcesAPI() {
     DeleteSourceMutationVariables
   >(DELETE_SOURCE_MUTATION);
 
+  const { register } = usePromiseCancellation();
+
   return useMemo(
     () => ({
       createSource: (id: string, name: string) => {
-        createSource({
-          variables: {
-            source: {
+        register(
+          createSource({
+            variables: {
+              source: {
+                id,
+                name,
+              },
+            },
+          })
+        );
+      },
+      renameSource: (id: string, name: string) => {
+        register(
+          renameSource({
+            variables: {
               id,
               name,
             },
-          },
-        }).catch((err) => {
-          // TODO.ERROR: Deal with errors
-          console.error(err);
-        });
-      },
-      renameSource: (id: string, name: string) => {
-        renameSource({
-          variables: {
-            id,
-            name,
-          },
-        }).catch((err) => {
-          // TODO.ERROR: Deal with errors
-          console.error(err);
-        });
+          })
+        );
       },
       deleteSource: (id: string) => {
-        deleteSource({
-          variables: {
-            id,
-          },
-        }).catch((err) => {
-          // TODO.ERROR: Deal with errors
-          console.error(err);
-        });
+        register(
+          deleteSource({
+            variables: {
+              id,
+            },
+          })
+        );
       },
     }),
-    [createSource, deleteSource, renameSource]
+    [register, createSource, deleteSource, renameSource]
   );
 }

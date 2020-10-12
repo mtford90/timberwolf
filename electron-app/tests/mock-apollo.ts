@@ -4,13 +4,15 @@ import getPort from "get-port";
 import { ApolloClient, HttpLink, InMemoryCache, split } from "@apollo/client";
 import { WebSocketLink } from "@apollo/client/link/ws";
 import { getMainDefinition } from "@apollo/client/utilities";
+import { random } from "lodash";
 import schema from "../src/main/server/schema.graphql";
 import { Log, Resolvers } from "../src/graphql-types.generated";
 import { SystemEvent } from "../__generated__/globalTypes";
 import { UnwrapPromise } from "../src/common/type-utils";
 
-export async function getMockGQLEnvironment(initialSources: string[] = []) {
+export async function getMockGQLEnvironment() {
   const pubSub = new PubSub();
+  let sources: string[] = [];
 
   const resolvers: Resolvers = {
     DateTime: GraphQLDateTime,
@@ -18,7 +20,7 @@ export async function getMockGQLEnvironment(initialSources: string[] = []) {
     Time: GraphQLTime,
     Query: {
       source() {
-        return initialSources.map((id) => ({ id, __typename: "Source" }));
+        return sources.map((id) => ({ id, __typename: "Source" }));
       },
     },
     Subscription: {
@@ -33,7 +35,7 @@ export async function getMockGQLEnvironment(initialSources: string[] = []) {
       },
     },
     Mutation: {
-      deleteSource: (parent, { sourceId }) => sourceId,
+      deleteSource: jest.fn((parent, { sourceId }) => sourceId),
     },
   };
 
@@ -42,9 +44,13 @@ export async function getMockGQLEnvironment(initialSources: string[] = []) {
     resolvers: resolvers as never,
   });
 
-  const port = await getPort({ port: 4000 });
+  const port = await getPort({ port: random(2000, 50000) });
 
-  const { url, subscriptionsUrl } = await server.listen(port);
+  const { url, subscriptionsUrl, server: httpServer } = await server.listen(
+    port
+  );
+
+  console.log("listening", url, subscriptionsUrl);
 
   const httpLink = new HttpLink({ uri: url });
 
@@ -76,11 +82,13 @@ export async function getMockGQLEnvironment(initialSources: string[] = []) {
 
   return {
     client,
-    stop: () => {
-      server.stop();
-    },
+    resolvers,
     emitSystemEvent: (systemEvent: SystemEvent) => {
       return pubSub.publish("systemEvent", { systemEvent });
+    },
+    stop: () => {
+      server.stop();
+      httpServer.close();
     },
     emitLog: (log: Log) => {
       setImmediate(() => {
@@ -92,6 +100,10 @@ export async function getMockGQLEnvironment(initialSources: string[] = []) {
             console.error(err);
           });
       });
+    },
+    setSources: (ss: string[]) => {
+      console.log("setSources", ss);
+      sources = ss;
     },
   };
 }
