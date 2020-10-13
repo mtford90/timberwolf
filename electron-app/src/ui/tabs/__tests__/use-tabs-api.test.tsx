@@ -28,14 +28,14 @@ describe("useTabs", () => {
           timestamp: Date.now(),
           source: {
             __typename: "Source",
-            id: "ws:/my other log",
+            id: "my other log",
           },
           rowid: 10,
         });
 
         await waitFor(() => result.current.tabs.length === 3);
 
-        expect(result.current.tabs[2].id).toEqual("ws:/my other log");
+        expect(result.current.tabs[2].id).toEqual("my other log");
       });
     });
   });
@@ -46,15 +46,15 @@ describe("useTabs", () => {
         describe("if the tab to be deleted is selected", () => {
           beforeEach(async () => {
             harness = await getTestHarness({
-              sources: ["stdin", "ws:/my log"],
+              sources: ["stdin", "my log"],
             });
           });
 
           async function setup() {
             const { result, waitFor, selectTab } = harness;
             await waitFor(() => result.current.tabs.length === 2);
-            await selectTab("ws:/my log");
-            act(() => result.current.deleteTab("ws:/my log"));
+            await selectTab("my log");
+            act(() => result.current.deleteTab("my log"));
             await waitFor(() => result.current.tabs.length === 1);
             return { result, waitFor };
           }
@@ -77,14 +77,14 @@ describe("useTabs", () => {
         describe("if the tab to be deleted is not selected", () => {
           beforeEach(async () => {
             harness = await getTestHarness({
-              sources: ["stdin", "ws:/my log"],
+              sources: ["stdin", "my log"],
             });
           });
 
           async function setup() {
             const { result, waitFor, selectTab } = harness;
             await waitFor(() => result.current.tabs.length === 2);
-            await selectTab("ws:/my log");
+            await selectTab("my log");
             act(() => result.current.deleteTab("stdin"));
             await waitFor(() => result.current.tabs.length === 1);
             return result;
@@ -93,14 +93,14 @@ describe("useTabs", () => {
           it("should only return the remaining tab", async () => {
             const result = await setup();
             expect(result.current.tabs[0]).toEqual({
-              name: "ws:/my log",
-              id: "ws:/my log",
+              name: "my log",
+              id: "my log",
             });
           });
 
           it("should select the remaining tab", async () => {
             const result = await setup();
-            expect(result.current.selectedTabId).toEqual("ws:/my log");
+            expect(result.current.selectedTabId).toEqual("my log");
           });
         });
       });
@@ -113,7 +113,7 @@ describe("useTabs", () => {
         it("should no longer have a selected tab", async () => {
           const { result, waitFor } = harness;
           await waitFor(() => Boolean(result.current.tabs.length));
-          act(() => result.current.deleteTab("ws:/my log"));
+          act(() => result.current.deleteTab("my log"));
           await waitFor(() => result.current.tabs.length === 0);
           expect(result.current.selectedTabId).toBe(null);
         });
