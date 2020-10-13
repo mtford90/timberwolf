@@ -1,13 +1,20 @@
 import { act } from "@testing-library/react-hooks";
 import "isomorphic-fetch";
-import { getApollo, render } from "./utils";
+import { getTestHarness, TestHarness } from "./utils";
+
+let harness: TestHarness;
+
+afterEach(() => harness?.stop());
 
 describe("useTabs", () => {
   describe("when start with two tabs", () => {
     describe("and one tab is provided by the subscription", () => {
+      beforeEach(async () => {
+        harness = await getTestHarness({ sources: ["stdin", "my log"] });
+      });
+
       it("should render 3 tabs", async () => {
-        const env = await getApollo(["stdin", "my log"]);
-        const { result, waitFor, waitForNextUpdate } = await render(env.client);
+        const { result, waitFor, waitForNextUpdate, emitLog } = harness;
 
         await waitForNextUpdate();
 
@@ -15,7 +22,7 @@ describe("useTabs", () => {
 
         expect(result.current.tabs).toHaveLength(2);
 
-        env.emitLog({
+        emitLog({
           __typename: "Log",
           text: "some text",
           timestamp: Date.now(),
@@ -37,11 +44,15 @@ describe("useTabs", () => {
     describe("when a tab is deleted", () => {
       describe("if there is a tab remaining", () => {
         describe("if the tab to be deleted is selected", () => {
-          async function setup() {
-            const env = await getApollo(["stdin", "ws:/my log"]);
-            const { result, waitFor, selectTab } = await render(env.client);
-            await waitFor(() => result.current.tabs.length === 2);
+          beforeEach(async () => {
+            harness = await getTestHarness({
+              sources: ["stdin", "ws:/my log"],
+            });
+          });
 
+          async function setup() {
+            const { result, waitFor, selectTab } = harness;
+            await waitFor(() => result.current.tabs.length === 2);
             await selectTab("ws:/my log");
             act(() => result.current.deleteTab("ws:/my log"));
             await waitFor(() => result.current.tabs.length === 1);
@@ -59,17 +70,20 @@ describe("useTabs", () => {
 
           it("should select the remaining tab", async () => {
             const { result } = await setup();
-
             expect(result.current.selectedTabId).toEqual("stdin");
           });
         });
 
         describe("if the tab to be deleted is not selected", () => {
-          async function setup() {
-            const env = await getApollo(["stdin", "ws:/my log"]);
-            const { result, waitFor, selectTab } = await render(env.client);
-            await waitFor(() => result.current.tabs.length === 2);
+          beforeEach(async () => {
+            harness = await getTestHarness({
+              sources: ["stdin", "ws:/my log"],
+            });
+          });
 
+          async function setup() {
+            const { result, waitFor, selectTab } = harness;
+            await waitFor(() => result.current.tabs.length === 2);
             await selectTab("ws:/my log");
             act(() => result.current.deleteTab("stdin"));
             await waitFor(() => result.current.tabs.length === 1);
@@ -78,7 +92,6 @@ describe("useTabs", () => {
 
           it("should only return the remaining tab", async () => {
             const result = await setup();
-
             expect(result.current.tabs[0]).toEqual({
               name: "ws:/my log",
               id: "ws:/my log",
@@ -87,16 +100,18 @@ describe("useTabs", () => {
 
           it("should select the remaining tab", async () => {
             const result = await setup();
-
             expect(result.current.selectedTabId).toEqual("ws:/my log");
           });
         });
       });
 
       describe("if it is the last tab remaining", () => {
+        beforeEach(async () => {
+          harness = await getTestHarness();
+        });
+
         it("should no longer have a selected tab", async () => {
-          const otherEnv = await getApollo(["ws:/my log"]);
-          const { result, waitFor } = await render(otherEnv.client);
+          const { result, waitFor } = harness;
           await waitFor(() => Boolean(result.current.tabs.length));
           act(() => result.current.deleteTab("ws:/my log"));
           await waitFor(() => result.current.tabs.length === 0);
@@ -108,9 +123,12 @@ describe("useTabs", () => {
 
   describe("add tab", () => {
     describe("when not specifying a name", () => {
+      beforeEach(async () => {
+        harness = await getTestHarness();
+      });
+
       it("should use default name", async () => {
-        const env = await getApollo();
-        const { result, waitForNextUpdate } = await render(env.client);
+        const { result, waitForNextUpdate } = harness;
         await waitForNextUpdate();
         act(() => {
           result.current.addTab();
@@ -122,8 +140,7 @@ describe("useTabs", () => {
 
       describe("when adding a multiple new tabs with default name", () => {
         it("should suffix with #2 & #3", async () => {
-          const env = await getApollo();
-          const { result, waitForNextUpdate } = await render(env.client);
+          const { result, waitForNextUpdate } = harness;
           await waitForNextUpdate();
           act(() => {
             result.current.addTab();
@@ -146,9 +163,12 @@ describe("useTabs", () => {
     });
 
     describe("when specifying a name", () => {
+      beforeEach(async () => {
+        harness = await getTestHarness();
+      });
+
       it("should use the name", async () => {
-        const env = await getApollo();
-        const { result, waitFor, waitForNextUpdate } = await render(env.client);
+        const { result, waitFor, waitForNextUpdate } = harness;
         await waitForNextUpdate();
         act(() => {
           result.current.addTab("my tab");
@@ -163,13 +183,15 @@ describe("useTabs", () => {
 
   describe("rename tab", () => {
     describe("when renaming an existing tab", () => {
+      beforeEach(async () => {
+        harness = await getTestHarness({ sources: ["stdin", "my log"] });
+      });
+
       it("should change the name", async () => {
-        const { client } = await getApollo(["stdin", "my log"]);
-        const { result, waitFor, unmount } = await render(client);
+        const { result, waitFor } = harness;
         await waitFor(() => result.current.tabs.length === 2);
         act(() => result.current.renameTab("my log", "My Tab"));
         await waitFor(() => result.current.tabs[1].name === "My Tab");
-        unmount();
       });
     });
   });

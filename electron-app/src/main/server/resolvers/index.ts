@@ -1,16 +1,12 @@
 import os from "os";
 import { GraphQLDate, GraphQLDateTime, GraphQLTime } from "graphql-iso-date";
-import { withFilter } from "graphql-subscriptions";
 import { nativeTheme } from "electron";
-import {
-  Resolvers,
-  Subscription,
-  SubscriptionLogsArgs,
-} from "../../../graphql-types.generated";
+import { Resolvers } from "../../../graphql-types.generated";
 import { Publishers } from "../publishers";
 import { Database } from "../database";
 import { WebsocketServer } from "../websockets";
 import { getExecutablePath } from "./executable-path";
+import { logsSubscriptionResolver } from "./subscriptions/logs";
 
 export type ResolverDependencies = {
   publishers: Publishers;
@@ -60,19 +56,10 @@ export function initialiseGQLResolvers({
         return database.numLogs(source, beforeRowId, filter);
       },
       suggest(parent, { source, limit, offset, prefix }) {
-        const suggestions = database.suggest(source, prefix, {
+        return database.suggest(source, prefix, {
           limit: limit || 10,
           offset: offset || 0,
         });
-
-        console.log(`[resolvers] suggest: ${suggestions.join(", ")}`, {
-          source,
-          limit,
-          offset,
-          prefix,
-        });
-
-        return suggestions;
       },
       systemInfo() {
         return {
@@ -85,33 +72,7 @@ export function initialiseGQLResolvers({
     },
 
     Subscription: {
-      logs: {
-        subscribe: withFilter(
-          () => {
-            return publishers.logs.asyncIterator();
-          },
-          (
-            payload: Pick<Subscription, "logs">,
-            variables: SubscriptionLogsArgs
-          ) => {
-            const log = payload.logs;
-
-            if (!log) return false;
-
-            if (variables.filter) {
-              const match = log.text.indexOf(variables.filter) > -1;
-              if (!match) return false;
-            }
-
-            if (variables.sourceId) {
-              const match = log.source.id === variables.sourceId;
-              if (!match) return false;
-            }
-
-            return true;
-          }
-        ),
-      },
+      logs: logsSubscriptionResolver(() => publishers.logs.asyncIterator()),
       systemInfo: {
         subscribe: () => publishers.systemInfo.asyncIterator(),
       },

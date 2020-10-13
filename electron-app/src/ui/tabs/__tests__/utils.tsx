@@ -1,31 +1,14 @@
-import { ApolloClient, ApolloProvider } from "@apollo/client";
+import { ApolloProvider } from "@apollo/client";
 import { act, renderHook } from "@testing-library/react-hooks";
 import React from "react";
-import { useTabsApi } from "../use-tabs-api";
 import { mockApollo } from "../../../../tests/mock-apollo";
 import { Log } from "../../../graphql-types.generated";
+import { useTabsApi } from "../use-tabs-api";
+import { UnwrapPromise } from "../../../common/type-utils";
 
-export async function render(client: ApolloClient<any>) {
-  const utils = renderHook(() => useTabsApi(), {
-    wrapper: ({ children }) => (
-      <ApolloProvider client={client}>
-        <>{children as any}</>
-      </ApolloProvider>
-    ),
-  });
+export async function getTestHarness(config: { sources?: string[] } = {}) {
+  let { sources = [] } = config;
 
-  return {
-    ...utils,
-    selectTab: async (tabId: string) => {
-      act(() => utils.result.current.setSelectedTabId(tabId));
-      await utils.waitFor(() =>
-        Boolean(utils.result.current.selectedTabId === tabId)
-      );
-    },
-  };
-}
-
-export async function getApollo(sources: string[] = []) {
   const mockedApollo = await mockApollo((pubSub) => ({
     Query: {
       source() {
@@ -48,8 +31,26 @@ export async function getApollo(sources: string[] = []) {
     },
   }));
 
+  const utils = renderHook(() => useTabsApi(), {
+    wrapper: ({ children }) => (
+      <ApolloProvider client={mockedApollo.client}>
+        <>{children as any}</>
+      </ApolloProvider>
+    ),
+  });
+
   return {
+    ...utils,
+    selectTab: async (tabId: string) => {
+      act(() => utils.result.current.setSelectedTabId(tabId));
+      await utils.waitFor(() =>
+        Boolean(utils.result.current.selectedTabId === tabId)
+      );
+    },
     ...mockedApollo,
+    setSources: (ss: string[]) => {
+      sources = ss;
+    },
     emitLog: (log: Log) => {
       setImmediate(() => {
         mockedApollo.pubSub
@@ -63,3 +64,5 @@ export async function getApollo(sources: string[] = []) {
     },
   };
 }
+
+export type TestHarness = UnwrapPromise<ReturnType<typeof getTestHarness>>;

@@ -9,7 +9,7 @@ import { Resolvers } from "../src/graphql-types.generated";
 import { UnwrapPromise } from "../src/common/type-utils";
 
 /**
- * Create a mocked apollo server for use during testing.
+ * Create a mocked apollo server & client for use during testing.
  *
  * Note: I tried all of MockedProvider, mockServer & SchemaLink and none worked well with subscriptions...
  */
@@ -56,8 +56,11 @@ export async function mockApollo(getResolvers: (pubSub: PubSub) => Resolvers) {
   });
 
   return {
+    // This is the client for use with ApolloProvider
     client,
+    // This is the pubSub instance for use with publishing data to graphql subscriptions
     pubSub,
+    // This terminates the apollo server (and the underlying http server for good measure, since apollo's own stop method seems to be buggy...
     stop: () => {
       server.stop();
       httpServer.close();
