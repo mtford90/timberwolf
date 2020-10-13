@@ -10,7 +10,7 @@ describe("useTabs", () => {
   describe("when start with two tabs", () => {
     describe("and one tab is provided by the subscription", () => {
       beforeEach(async () => {
-        harness = await getTestHarness({ sources: ["stdin", "my log"] });
+        harness = await getTestHarness({ sources: ["stdin", "my source"] });
       });
 
       it("should render 3 tabs", async () => {
@@ -46,15 +46,15 @@ describe("useTabs", () => {
         describe("if the tab to be deleted is selected", () => {
           beforeEach(async () => {
             harness = await getTestHarness({
-              sources: ["stdin", "my log"],
+              sources: ["stdin", "my source"],
             });
           });
 
           async function setup() {
             const { result, waitFor, selectTab } = harness;
             await waitFor(() => result.current.tabs.length === 2);
-            await selectTab("my log");
-            act(() => result.current.deleteTab("my log"));
+            await selectTab("my source");
+            act(() => result.current.deleteTab("my source"));
             await waitFor(() => result.current.tabs.length === 1);
             return { result, waitFor };
           }
@@ -77,14 +77,14 @@ describe("useTabs", () => {
         describe("if the tab to be deleted is not selected", () => {
           beforeEach(async () => {
             harness = await getTestHarness({
-              sources: ["stdin", "my log"],
+              sources: ["stdin", "my source"],
             });
           });
 
           async function setup() {
             const { result, waitFor, selectTab } = harness;
             await waitFor(() => result.current.tabs.length === 2);
-            await selectTab("my log");
+            await selectTab("my source");
             act(() => result.current.deleteTab("stdin"));
             await waitFor(() => result.current.tabs.length === 1);
             return result;
@@ -93,14 +93,14 @@ describe("useTabs", () => {
           it("should only return the remaining tab", async () => {
             const result = await setup();
             expect(result.current.tabs[0]).toEqual({
-              name: "my log",
-              id: "my log",
+              name: "my source",
+              id: "my source",
             });
           });
 
           it("should select the remaining tab", async () => {
             const result = await setup();
-            expect(result.current.selectedTabId).toEqual("my log");
+            expect(result.current.selectedTabId).toEqual("my source");
           });
         });
       });
@@ -113,7 +113,7 @@ describe("useTabs", () => {
         it("should no longer have a selected tab", async () => {
           const { result, waitFor } = harness;
           await waitFor(() => Boolean(result.current.tabs.length));
-          act(() => result.current.deleteTab("my log"));
+          act(() => result.current.deleteTab("my source"));
           await waitFor(() => result.current.tabs.length === 0);
           expect(result.current.selectedTabId).toBe(null);
         });
@@ -184,13 +184,13 @@ describe("useTabs", () => {
   describe("rename tab", () => {
     describe("when renaming an existing tab", () => {
       beforeEach(async () => {
-        harness = await getTestHarness({ sources: ["stdin", "my log"] });
+        harness = await getTestHarness({ sources: ["stdin", "my source"] });
       });
 
       it("should change the name", async () => {
         const { result, waitFor } = harness;
         await waitFor(() => result.current.tabs.length === 2);
-        act(() => result.current.renameTab("my log", "My Tab"));
+        act(() => result.current.renameTab("my source", "My Tab"));
         await waitFor(() => result.current.tabs[1].name === "My Tab");
       });
     });
