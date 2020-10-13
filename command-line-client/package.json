@@ -1,7 +1,24 @@
 {
   "name": "command-line-client",
-  "version": "1.0.0",
-  "main": "index.js",
+  "version": "0.0.1",
   "private": true,
-  "license": "MIT"
+  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "build": "rollup -c rollup.config.js && chmod +x ./out/timberwolf",
+    "test": "jest --coverage"
+  },
+  "dependencies": {
+    "ws": "^7.3.1",
+    "yargs": "^16.0.3"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^6.0.0",
+    "@types/ws": "^7.2.6",
+    "@types/yargs": "^15.0.8",
+    "jest": "^26.5.3",
+    "rollup": "^2.29.0",
+    "rollup-plugin-add-shebang": "^0.3.1",
+    "tslib": "^2.0.3"
+  }
 }
