@@ -7,6 +7,12 @@
 // GraphQL query operation: SourcesQuery
 // ====================================================
 
+export interface SourcesQuery_source {
+  __typename: "Source";
+  id: string;
+  name: string | null;
+}
+
 export interface SourcesQuery {
-  source: string[];
+  source: SourcesQuery_source[];
 }
