@@ -19,6 +19,7 @@ module.exports = {
     "promise",
     "@typescript-eslint",
     "jest",
+    "react-hooks",
   ],
   globals: {
     __DEV__: true,
@@ -74,6 +75,9 @@ module.exports = {
     "jest/no-identical-title": "error",
     "jest/prefer-to-have-length": "warn",
     "jest/valid-expect": "error",
+
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
   },
   settings: {
     "import/resolver": {
@@ -90,7 +94,7 @@ module.exports = {
     "jest/globals": true,
     browser: true,
   },
-  ignorePatterns: ["*.generated.*", "__generated__"],
+  ignorePatterns: ["*.generated.*", "__generated__", "*.d.ts"],
   overrides: [
     {
       files: ["**/tests/**/*.ts", "*.test.tsx", "*.test.ts"],
@@ -100,7 +104,7 @@ module.exports = {
       },
     },
     {
-      files: ["webpack.*.js", "*.config.js"],
+      files: ["webpack.*.js", "*.config.js", "./electron-app/tests/**/*.js"],
       rules: {
         "@typescript-eslint/no-var-requires": "off",
         "global-require": "off",

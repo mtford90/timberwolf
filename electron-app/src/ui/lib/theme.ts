@@ -10,11 +10,18 @@ export const darkTheme = {
     backgroundColor: "rgb(36,36,36)",
     textColor: contrastWhite,
     borderColor: transparentize(0.8, contrastWhite),
-    transparentHover: transparentize(0.9, contrastWhite),
+    hover: {
+      main: transparentize(0.9, contrastWhite),
+      light: lighten(0.1, transparentize(0.9, contrastWhite)),
+    },
     inputBackground: transparentize(0.9, contrastWhite),
     ok: {
       main: GREEN,
       light: lighten(0.1, GREEN),
+    },
+    buttonBackground: {
+      main: transparentize(0.9, contrastWhite),
+      hover: lighten(0.2, transparentize(0.9, contrastWhite)),
     },
   },
 };

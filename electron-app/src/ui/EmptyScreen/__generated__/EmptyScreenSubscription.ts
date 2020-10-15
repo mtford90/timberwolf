@@ -14,5 +14,5 @@ export interface EmptyScreenSubscription_systemInfo {
 }
 
 export interface EmptyScreenSubscription {
-  systemInfo: EmptyScreenSubscription_systemInfo;
+  systemInfo: EmptyScreenSubscription_systemInfo | null;
 }

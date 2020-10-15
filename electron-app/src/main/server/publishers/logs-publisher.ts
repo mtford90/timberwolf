@@ -1,7 +1,4 @@
 import { PubSub } from "graphql-subscriptions";
-import fs from "mz/fs";
-import { random } from "lodash";
-import * as path from "path";
 import { Publisher } from "./publisher";
 import { Database } from "../database";
 import { WebsocketServer } from "../websockets";
@@ -40,30 +37,6 @@ export class LogsPublisher extends Publisher<"logs"> {
     this.stdin.on("data", this.receiveStdin);
     this.websocketServer?.on("message", this.receiveWebsocketMessage);
     this.websocketServer?.on("error", this.receiveWebsocketError);
-    this.mockStdIn();
-  }
-
-  /**
-   * Randomly generate stdin input for use in development
-   */
-  private mockStdIn() {
-    const env = process.env.NODE_ENV || "development";
-    if (env === "development") {
-      fs.readFile(path.resolve(__dirname, "../../log.txt")).then(
-        (buffer) => {
-          const logs = buffer.toString("utf8").split("\n");
-          setInterval(() => {
-            const index = random(0, logs.length - 1);
-            const log = logs[index];
-
-            this.receiveStdin(Buffer.from(log, "utf8"));
-          }, 1000);
-        },
-        (err) => {
-          console.error(err);
-        }
-      );
-    }
   }
 
   private receiveStdin = (data: Buffer) => {
@@ -71,7 +44,7 @@ export class LogsPublisher extends Publisher<"logs"> {
     const split = splitText(incoming);
 
     const dbEntries = this.database.insert(
-      split.map((s) => ({ source: "stdin", text: s, timestamp: Date.now() }))
+      split.map((s) => ({ sourceId: "stdin", text: s, timestamp: Date.now() }))
     );
 
     dbEntries.forEach((entry) => {
@@ -80,18 +53,23 @@ export class LogsPublisher extends Publisher<"logs"> {
         rowid: entry.rowid,
         text: entry.text,
         timestamp: new Date(entry.timestamp),
-        source: "stdin",
+        source: {
+          __typename: "Source",
+          id: "stdin",
+        },
       });
     });
   };
 
   private receiveWebsocketMessage = (message: WebsocketMessage) => {
     const split = splitText(message.text);
-    const source = `ws/${message.name}`;
+    const sourceId = message.id;
+
+    this.database.upsertSource(message.id, message.name);
 
     const toInsert = split.map((s) => {
       return {
-        source,
+        sourceId,
         text: s,
         timestamp: message.timestamp,
       };
@@ -99,13 +77,19 @@ export class LogsPublisher extends Publisher<"logs"> {
 
     const rows = this.database.insert(toInsert);
 
+    const source = this.database.getSource(sourceId);
+
     rows.forEach((r) => {
       this.publish({
         __typename: "Log",
         rowid: r.rowid,
         text: r.text,
         timestamp: new Date(r.timestamp),
-        source: r.source,
+        source: {
+          id: sourceId,
+          ...source,
+          __typename: "Source",
+        },
       });
     });
   };
