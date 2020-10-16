@@ -4,6 +4,7 @@ import "bluebird-global";
 import { app, BrowserWindow } from "electron";
 import debug from "electron-debug";
 import { values } from "lodash";
+import * as path from "path";
 import configureServer from "./server";
 import { configureMenu } from "./menu";
 import { Database } from "./server/database";
@@ -26,7 +27,9 @@ let win: BrowserWindow;
 
 debug();
 
-const database = new Database();
+const database = new Database(
+  path.resolve(app.getPath("userData"), "timberwolf.db")
+);
 
 database.init();
 
