@@ -1,16 +1,20 @@
 import * as Joi from "joi";
 
-export interface WebsocketMessage {
+export interface BaseWebsocketMessage {
   name: string;
   id: string;
   timestamp: number;
   text: string;
+  source?: "console";
+  level?: "info" | "log" | "debug" | "warn" | "error";
 }
 
 const websocketMessageSchema = Joi.alternatives(
   Joi.object({
     name: Joi.string(),
     id: Joi.string(),
+    source: Joi.string().valid("console"),
+    level: Joi.string().valid("info", "log", "debug", "warn", "error"),
     timestamp: Joi.number().integer().min(0),
     text: Joi.string().required(),
   }),
@@ -19,7 +23,9 @@ const websocketMessageSchema = Joi.alternatives(
 
 const DEFAULT_ID = "default";
 
-export async function parseMessage(message: string): Promise<WebsocketMessage> {
+export async function parseMessage(
+  message: string
+): Promise<BaseWebsocketMessage> {
   let value;
 
   try {

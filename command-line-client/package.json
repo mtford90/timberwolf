@@ -16,7 +16,6 @@
     "@rollup/plugin-typescript": "^6.0.0",
     "@types/ws": "^7.2.6",
     "@types/yargs": "^15.0.8",
-    "jest": "^26.5.3",
     "rollup": "^2.29.0",
     "rollup-plugin-add-shebang": "^0.3.1",
     "tslib": "^2.0.3"
