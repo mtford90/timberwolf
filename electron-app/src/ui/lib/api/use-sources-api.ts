@@ -1,19 +1,20 @@
 import { useMutation } from "@apollo/client";
 import gql from "graphql-tag";
 import { useMemo } from "react";
+
+import { usePromiseCancellation } from "../hooks/use-promise-cancellation";
 import {
   CreateSourceMutation,
   CreateSourceMutationVariables,
-} from "../../tabs/__generated__/CreateSourceMutation";
+} from "./__generated__/CreateSourceMutation";
 import {
   RenameSourceMutation,
   RenameSourceMutationVariables,
-} from "../../tabs/__generated__/RenameSourceMutation";
+} from "./__generated__/RenameSourceMutation";
 import {
   DeleteSourceMutation,
   DeleteSourceMutationVariables,
-} from "../../tabs/__generated__/DeleteSourceMutation";
-import { usePromiseCancellation } from "../hooks/use-promise-cancellation";
+} from "./__generated__/DeleteSourceMutation";
 
 export const CREATE_SOURCE_MUTATION = gql`
   mutation CreateSourceMutation($source: SourceInput!) {
