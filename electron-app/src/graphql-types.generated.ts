@@ -82,6 +82,7 @@ export type Subscription = {
   logs?: Maybe<Log>;
   systemInfo?: Maybe<SystemInfo>;
   systemEvent?: Maybe<SystemEvent>;
+  source: Array<Source>;
 };
 
 
@@ -262,6 +263,7 @@ export type SubscriptionResolvers<ContextType = any, ParentType extends Resolver
   logs?: SubscriptionResolver<Maybe<ResolversTypes['Log']>, "logs", ParentType, ContextType, RequireFields<SubscriptionLogsArgs, never>>;
   systemInfo?: SubscriptionResolver<Maybe<ResolversTypes['SystemInfo']>, "systemInfo", ParentType, ContextType>;
   systemEvent?: SubscriptionResolver<Maybe<ResolversTypes['SystemEvent']>, "systemEvent", ParentType, ContextType>;
+  source?: SubscriptionResolver<Array<ResolversTypes['Source']>, "source", ParentType, ContextType>;
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {

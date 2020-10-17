@@ -6,7 +6,7 @@ let harness: TestHarness;
 
 afterEach(() => harness?.stop());
 
-describe("useTabs", () => {
+describe("useTabsApi", () => {
   describe("when start with two tabs", () => {
     describe("and one tab is provided by the subscription", () => {
       beforeEach(async () => {
@@ -14,7 +14,7 @@ describe("useTabs", () => {
       });
 
       it("should render 3 tabs", async () => {
-        const { result, waitFor, waitForNextUpdate, emitLog } = harness;
+        const { result, waitFor, waitForNextUpdate, addSource } = harness;
 
         await waitForNextUpdate();
 
@@ -22,20 +22,13 @@ describe("useTabs", () => {
 
         expect(result.current.tabs).toHaveLength(2);
 
-        emitLog({
-          __typename: "Log",
-          text: "some text",
-          timestamp: Date.now(),
-          source: {
-            __typename: "Source",
-            id: "my other log",
-          },
-          rowid: 10,
-        });
+        addSource("my other source");
 
         await waitFor(() => result.current.tabs.length === 3);
 
-        expect(result.current.tabs[2].id).toEqual("my other log");
+        console.log(result.current.tabs);
+
+        expect(result.current.tabs[2].id).toEqual("my other source");
       });
     });
   });

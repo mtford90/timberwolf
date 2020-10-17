@@ -1,27 +1,15 @@
 import gql from "graphql-tag";
-import { useApolloClient, useQuery } from "@apollo/client";
+import { useApolloClient, useQuery, useSubscription } from "@apollo/client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { sortBy, uniqBy } from "lodash";
 import { v4 as guid } from "uuid";
-import { SourcesQuery } from "./__generated__/SourcesQuery";
 import { TabEventsSubscription } from "./__generated__/TabEventsSubscription";
 import { SystemEvent } from "../../../__generated__/globalTypes";
 import { Source } from "../../graphql-types.generated";
 import { useSourcesAPI } from "../lib/api/use-sources-api";
 import { useLocalStorage } from "../lib/hooks/use-local-storage";
-import { useSourcesSubscription } from "../lib/api/use-sources-subscription";
-
-/**
- * Returns all sources
- */
-export const SOURCES_QUERY = gql`
-  query SourcesQuery {
-    source {
-      id
-      name
-    }
-  }
-`;
+import { SourcesSubscription } from "./__generated__/SourcesSubscription";
+import { SourcesQuery } from "./__generated__/SourcesQuery";
 
 export const TAB_EVENTS_SUBSCRIPTION = gql`
   subscription TabEventsSubscription {
@@ -41,10 +29,43 @@ function sourceToTab(source: Source): Tab {
   };
 }
 
-function useTabs() {
+export const SOURCES_QUERY = gql`
+  query SourcesQuery {
+    source {
+      id
+      name
+    }
+  }
+`;
+
+export const SOURCES_SUBSCRIPTION = gql`
+  subscription SourcesSubscription {
+    source {
+      id
+      name
+    }
+  }
+`;
+
+function useSources() {
   const { data } = useQuery<SourcesQuery>(SOURCES_QUERY);
 
-  return useMemo(() => data?.source?.map(sourceToTab) || [], [data]);
+  return useMemo(() => {
+    const source = data?.source;
+    return source?.map(sourceToTab) || [];
+  }, [data]);
+}
+
+function useSourcesSubscription() {
+  const { data } = useSubscription<SourcesSubscription>(
+    SOURCES_SUBSCRIPTION,
+    {}
+  );
+
+  return useMemo(() => {
+    const source = data?.source;
+    return source?.map(sourceToTab) || [];
+  }, [data]);
 }
 
 /**
@@ -53,7 +74,8 @@ function useTabs() {
  * Provides new tabs as necessary depending on the source of incoming data
  */
 export function useTabsApi() {
-  const sources = useTabs();
+  const sources = useSources();
+  const latestSources = useSourcesSubscription();
 
   const api = useSourcesAPI();
 
@@ -94,17 +116,17 @@ export function useTabsApi() {
     }
   }, [sources, ensureTab, setTabs]);
 
-  useSourcesSubscription(
-    useCallback(
-      (latestSource: Source) => {
-        setTabs((s) =>
-          uniqBy([...s, sourceToTab(latestSource)], (tab) => tab.id)
-        );
-        ensureTab(latestSource.id);
-      },
-      [ensureTab, setTabs]
-    )
-  );
+  useEffect(() => {
+    if (latestSources && latestSources.length) {
+      setTabs((prevTabs) => {
+        return uniqBy([...prevTabs, ...latestSources], (s) => s.id);
+      });
+      const firstTab = latestSources[0];
+      if (firstTab) {
+        ensureTab(firstTab.id);
+      }
+    }
+  }, [latestSources, setTabs, ensureTab]);
 
   const deleteTab = useCallback(
     (id: string) => {

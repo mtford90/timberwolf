@@ -39,6 +39,7 @@ type Subscription {
     logs(sourceId: String, filter: String): Log
     systemInfo: SystemInfo
     systemEvent: SystemEvent
+    source: [Source!]!
 }
 
 input SourceInput {

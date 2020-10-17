@@ -14,5 +14,5 @@ export interface SourcesSubscription_source {
 }
 
 export interface SourcesSubscription {
-  source: SourcesSubscription_source[];
+  source: SourcesSubscription_source[] | null;
 }

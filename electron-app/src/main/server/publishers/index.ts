@@ -4,6 +4,7 @@ import { Database } from "../database";
 import { WebsocketServer } from "../websockets";
 import { SystemInfoPublisher } from "./system-info-publisher";
 import { SystemEventsPublisher } from "./system-events-publisher";
+import { SourcePublisher } from "./source-publisher";
 
 export function initPublishers(
   database: Database,
@@ -15,6 +16,7 @@ export function initPublishers(
     logs: new LogsPublisher({ pubSub, database, websocketServer }),
     systemInfo: new SystemInfoPublisher({ pubsub: pubSub, websocketServer }),
     systemEvents: new SystemEventsPublisher({ pubsub: pubSub }),
+    source: new SourcePublisher({ pubSub, db: database }),
   };
 }
 

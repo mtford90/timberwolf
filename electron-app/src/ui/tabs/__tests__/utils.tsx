@@ -11,9 +11,8 @@ export async function getTestHarness(config: { sources?: string[] } = {}) {
 
   const mockedApollo = await mockApollo((pubSub) => ({
     Query: {
-      source() {
-        return sources.map((id) => ({ id, __typename: "Source" }));
-      },
+      source: () =>
+        sources.map((id) => ({ id, __typename: "Source" as const })),
     },
     Subscription: {
       logs: {
@@ -24,6 +23,11 @@ export async function getTestHarness(config: { sources?: string[] } = {}) {
       },
       systemInfo: {
         subscribe: () => pubSub.asyncIterator(["systemInfo"]),
+      },
+      source: {
+        subscribe: () => pubSub.asyncIterator(["source"]),
+        resolve: () =>
+          sources.map((id) => ({ id, __typename: "Source" as const })),
       },
     },
     Mutation: {
@@ -48,14 +52,43 @@ export async function getTestHarness(config: { sources?: string[] } = {}) {
       );
     },
     ...mockedApollo,
-    setSources: (ss: string[]) => {
-      sources = ss;
-    },
     emitLog: (log: Log) => {
       setImmediate(() => {
         mockedApollo.pubSub
           .publish("logs", {
             logs: log,
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+      });
+    },
+    updateSources: (newSources: string[]) => {
+      sources = newSources;
+      setImmediate(() => {
+        mockedApollo.pubSub
+          .publish("source", {
+            source: newSources.map((s) => ({
+              id: s,
+              name: s,
+              __typename: "Source",
+            })),
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+      });
+    },
+    addSource: (newSource: string) => {
+      sources.push(newSource);
+      setImmediate(() => {
+        mockedApollo.pubSub
+          .publish("source", {
+            source: sources.map((s) => ({
+              id: s,
+              name: s,
+              __typename: "Source",
+            })),
           })
           .catch((err) => {
             console.error(err);

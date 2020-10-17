@@ -1,8 +1,10 @@
 import sqlite, { Database as SqliteDatabase } from "better-sqlite3";
 import { compact, groupBy, flatten, keys, uniq } from "lodash";
+import mitt from "mitt";
 import createSql from "./create.sql";
 
 type LogFieldList = Array<"rowid" | "source_id" | "timestamp" | "text">;
+type Emitter = ReturnType<typeof mitt>;
 
 export type LogRow = {
   rowid: number;
@@ -15,8 +17,11 @@ export type LogRow = {
 export class Database {
   private db: SqliteDatabase;
 
-  constructor(path = ":memory:") {
+  private emitter: Emitter;
+
+  constructor(path = ":memory:", emitter = mitt()) {
     this.db = sqlite(path);
+    this.emitter = emitter;
   }
 
   init() {
@@ -38,6 +43,8 @@ export class Database {
 
       upsert.run({ id });
     }
+
+    this.emit("upsert:source", id);
   }
 
   getSources(): Array<{ id: string; name: string | null }> {
@@ -68,10 +75,12 @@ export class Database {
    */
   overrideSourceName(id: string, name: string) {
     this.db.exec(`UPDATE sources SET override_name='${name}' WHERE id='${id}'`);
+    this.emit("update:source", id);
   }
 
   deleteSource(id: string) {
     this.db.exec(`DELETE FROM sources WHERE id='${id}'`);
+    this.emit("delete:source", id);
   }
 
   private insertWords(sourceId: string, words: string[]) {
@@ -229,5 +238,35 @@ export class Database {
     }
 
     return suggestions;
+  }
+
+  on(event: "upsert:source", listener: (id: string) => void): void;
+
+  on(event: "update:source", listener: (id: string) => void): void;
+
+  on(event: "delete:source", listener: (id: string) => void): void;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  on(event: any, listener: (value: any) => void) {
+    this.emitter.on(event, listener);
+  }
+
+  off(
+    event: "upsert:source" | "delete:source" | "update:source",
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    listener: (value: any) => void
+  ) {
+    this.emitter.off(event, listener);
+  }
+
+  private emit(event: "upsert:source", id: string): void;
+
+  private emit(event: "delete:source", id: string): void;
+
+  private emit(event: "update:source", id: string): void;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private emit(event: any, payload: any) {
+    this.emitter.emit(event, payload);
   }
 }

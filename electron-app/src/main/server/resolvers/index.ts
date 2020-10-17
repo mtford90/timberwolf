@@ -79,6 +79,13 @@ export function initialiseGQLResolvers({
       systemEvent: {
         subscribe: () => publishers.systemEvents.asyncIterator(),
       },
+      source: {
+        subscribe: () => publishers.source.asyncIterator(),
+        resolve: () =>
+          database
+            .getSources()
+            .map((s) => ({ ...s, __typename: "Source" as const })),
+      },
     },
 
     Mutation: {

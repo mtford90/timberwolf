@@ -283,6 +283,13 @@ describe("database", () => {
           });
         });
       });
+
+      it("should emit an event", async () => {
+        const spy = jest.fn();
+        db.on("upsert:source", spy);
+        db.upsertSource("xyz");
+        expect(spy).toHaveBeenCalledWith("xyz");
+      });
     });
 
     describe("getSources", () => {
@@ -317,6 +324,14 @@ describe("database", () => {
           name: "renamed",
         });
       });
+
+      it("should emit an event", async () => {
+        const spy = jest.fn();
+        db.upsertSource("xyz");
+        db.on("update:source", spy);
+        db.overrideSourceName("xyz", "renamed");
+        expect(spy).toHaveBeenCalledWith("xyz");
+      });
     });
 
     describe("deleteSource", () => {
@@ -325,6 +340,14 @@ describe("database", () => {
         db.deleteSource("xyz");
         const res = db.getSource("xyz");
         expect(res).toBe(null);
+      });
+
+      it("should emit an event", async () => {
+        db.upsertSource("xyz");
+        const spy = jest.fn();
+        db.on("delete:source", spy);
+        db.deleteSource("xyz");
+        expect(spy).toHaveBeenCalledWith("xyz");
       });
     });
   });
