@@ -6,12 +6,12 @@
     "allowSyntheticDefaultImports": true,
     "lib": ["dom", "es2019"],
     "noImplicitAny": true,
+    "noEmit": true,
     "outDir": "./dist",
     "target": "es5"
   },
   "include": [
     "src/**/*",
-    "tests/**/*"
   ],
   "exclude": ["node_modules"]
 }
