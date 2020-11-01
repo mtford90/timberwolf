@@ -19,7 +19,7 @@ export interface LogsQuery {
 }
 
 export interface LogsQueryVariables {
-  source: string;
+  source: number;
   limit: number;
   beforeRowId?: number | null;
   filter?: string | null;

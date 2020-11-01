@@ -12,3 +12,18 @@ export function generateIdentifier(name: string, existing: string[] = []) {
 
   return `${preferredId}-${numExisting}`;
 }
+
+export function generateName(
+  preferredName: string,
+  existingNames: string[] = []
+) {
+  if (!existingNames.includes(preferredName)) {
+    return preferredName;
+  }
+
+  const numExisting = existingNames.filter((name) =>
+    name.startsWith(preferredName)
+  ).length;
+
+  return `${preferredName} (${numExisting})`;
+}

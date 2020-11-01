@@ -1,18 +1,19 @@
 import * as Joi from "joi";
+import { DEFAULT_SOURCE } from "./constants";
 
 export interface BaseWebsocketMessage {
-  name: string;
-  id: string;
   timestamp: number;
   text: string;
   source?: "console";
   level?: "info" | "log" | "debug" | "warn" | "error";
+  name?: string;
+  id?: number;
 }
 
 const websocketMessageSchema = Joi.alternatives(
   Joi.object({
     name: Joi.string(),
-    id: Joi.string(),
+    id: Joi.number(),
     source: Joi.string().valid("console"),
     level: Joi.string().valid("info", "log", "debug", "warn", "error"),
     timestamp: Joi.number().integer().min(0),
@@ -20,8 +21,6 @@ const websocketMessageSchema = Joi.alternatives(
   }),
   Joi.string()
 );
-
-const DEFAULT_ID = "default";
 
 export async function parseMessage(
   message: string
@@ -39,15 +38,13 @@ export async function parseMessage(
   if (typeof parsed === "string") {
     parsed = {
       text: parsed,
-      name: DEFAULT_ID,
-      id: DEFAULT_ID,
+      name: DEFAULT_SOURCE,
     };
   }
 
   return {
     timestamp: Date.now(),
     ...parsed,
-    id: parsed.id || parsed.name || DEFAULT_ID,
-    name: parsed.name || parsed.id || DEFAULT_ID,
+    name: parsed.name || DEFAULT_SOURCE,
   };
 }

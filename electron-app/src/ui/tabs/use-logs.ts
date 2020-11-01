@@ -4,7 +4,7 @@ import { useReceiveLogs } from "./use-receive-logs";
 import { useParseLogNodes } from "../lib/parse/use-parse-log-nodes";
 
 export function useLogs(
-  source: string,
+  source: number,
   filter: string,
   events: {
     onReset: () => void;

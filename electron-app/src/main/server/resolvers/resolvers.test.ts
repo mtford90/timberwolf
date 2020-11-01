@@ -44,7 +44,7 @@ describe("resolvers", () => {
           database: {
             getLogs: jest.fn(() => mockLines),
             getSource: jest.fn(() => ({
-              id: "stdin",
+              id: 1,
               name: "stdin",
             })),
           },
@@ -54,7 +54,7 @@ describe("resolvers", () => {
 
         const response = resolvers.Query?.logs?.(
           parent,
-          { limit: 10, beforeRowId: 10, sourceId: "stdin" },
+          { limit: 10, beforeRowId: 10, sourceId: 1 },
           context,
           resolveInfo
         );
@@ -67,7 +67,7 @@ describe("resolvers", () => {
                 "rowid": 1,
                 "source": Object {
                   "__typename": "Source",
-                  "id": "stdin",
+                  "id": 1,
                   "name": "stdin",
                 },
                 "text": "xy",
@@ -78,7 +78,7 @@ describe("resolvers", () => {
         });
 
         it("should call with the correct params", async () => {
-          expect(deps.database.getLogs).toBeCalledWith("stdin", {
+          expect(deps.database.getLogs).toBeCalledWith(1, {
             limit: 10,
             beforeRowId: 10,
           });
@@ -97,7 +97,10 @@ describe("resolvers", () => {
         const deps = deepMock<ResolverDependencies>({
           database: {
             getLogs: jest.fn(() => mockLines),
-            getSource: jest.fn(() => ({ id: "stdin", name: "stdin" })),
+            getSource: jest.fn(() => ({
+              name: "stdin",
+              id: 1,
+            })),
           },
         });
 
@@ -105,7 +108,7 @@ describe("resolvers", () => {
 
         const response = resolvers.Query?.logs?.(
           parent,
-          { limit: 10, beforeRowId: 10, filter: "yo", sourceId: "stdin" },
+          { limit: 10, beforeRowId: 10, filter: "yo", sourceId: 1 },
           context,
           resolveInfo
         );
@@ -118,7 +121,7 @@ describe("resolvers", () => {
                 "rowid": 1,
                 "source": Object {
                   "__typename": "Source",
-                  "id": "stdin",
+                  "id": 1,
                   "name": "stdin",
                 },
                 "text": "xy",
@@ -129,7 +132,7 @@ describe("resolvers", () => {
         });
 
         it("should call with the correct params", async () => {
-          expect(deps.database.getLogs).toBeCalledWith("stdin", {
+          expect(deps.database.getLogs).toBeCalledWith(1, {
             limit: 10,
             filter: "yo",
             beforeRowId: 10,
@@ -149,7 +152,7 @@ describe("resolvers", () => {
         const result = resolvers.Query?.suggest?.(
           parent,
           {
-            source: "stdin",
+            sourceId: 1,
             limit: 20,
             offset: 10,
             prefix: "h",
@@ -160,7 +163,7 @@ describe("resolvers", () => {
 
         expect(result).toEqual(["hello"]);
 
-        expect(deps.database.suggest).toHaveBeenCalledWith("stdin", "h", {
+        expect(deps.database.suggest).toHaveBeenCalledWith(1, "h", {
           limit: 20,
           offset: 10,
         });
@@ -170,7 +173,11 @@ describe("resolvers", () => {
 
   describe("subscriptions", () => {
     describe("stdin", () => {
-      const pubSub = new PubSub();
+      let pubSub: PubSub;
+
+      beforeEach(() => {
+        pubSub = new PubSub();
+      });
 
       describe("with no filter", () => {
         it("should emit a payload", (done) => {
@@ -192,16 +199,21 @@ describe("resolvers", () => {
             const iterator: AsyncIterator<{ stdin: string }> = logs.subscribe(
               parent,
               {
-                sourceId: "stdin",
+                sourceId: 1,
               },
               context,
               resolveInfo
             ) as AsyncIterator<{ stdin: string }>;
 
-            const payload = {
+            const payload: Pick<Subscription, "logs"> = {
               logs: {
+                __typename: "Log",
+                rowid: 1,
+                timestamp: Date.now(),
                 source: {
-                  id: "stdin",
+                  __typename: "Source" as const,
+                  id: 1,
+                  name: "stdin",
                 },
                 text: "hi",
               },
@@ -242,7 +254,7 @@ describe("resolvers", () => {
             const iterator = stdin.subscribe(
               parent,
               {
-                sourceId: "stdin",
+                sourceId: 1,
                 filter: "bl",
               },
               context,
@@ -256,7 +268,8 @@ describe("resolvers", () => {
                 timestamp: 0,
                 rowid: 1,
                 source: {
-                  id: "stdin",
+                  id: 1,
+                  name: "stdin",
                   __typename: "Source",
                 },
               },
@@ -269,7 +282,8 @@ describe("resolvers", () => {
                 timestamp: 0,
                 rowid: 2,
                 source: {
-                  id: "stdin",
+                  id: 1,
+                  name: "stdin",
                   __typename: "Source",
                 },
               },

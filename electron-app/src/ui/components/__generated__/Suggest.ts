@@ -12,6 +12,6 @@ export interface Suggest {
 }
 
 export interface SuggestVariables {
-  source: string;
+  sourceId: number;
   prefix: string;
 }

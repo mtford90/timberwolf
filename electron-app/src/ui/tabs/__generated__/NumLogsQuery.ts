@@ -12,7 +12,7 @@ export interface NumLogsQuery {
 }
 
 export interface NumLogsQueryVariables {
-  source: string;
+  source: number;
   rowId?: number | null;
   filter?: string | null;
 }

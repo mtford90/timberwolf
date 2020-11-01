@@ -20,19 +20,21 @@ export const CREATE_SOURCE_MUTATION = gql`
   mutation CreateSourceMutation($source: SourceInput!) {
     createSource(source: $source) {
       id
+      name
     }
   }
 `;
 export const RENAME_SOURCE_MUTATION = gql`
-  mutation RenameSourceMutation($id: String!, $name: String!) {
-    renameSource(sourceId: $id, name: $name) {
+  mutation RenameSourceMutation($id: Int!, $name: String!) {
+    renameSource(id: $id, name: $name) {
       id
+      name
     }
   }
 `;
 export const DELETE_SOURCE_MUTATION = gql`
-  mutation DeleteSourceMutation($id: String!) {
-    deleteSource(sourceId: $id)
+  mutation DeleteSourceMutation($id: Int!) {
+    deleteSource(id: $id)
   }
 `;
 
@@ -56,29 +58,48 @@ export function useSourcesAPI() {
 
   return useMemo(
     () => ({
-      createSource: (id: string, name: string) => {
-        register(
-          createSource({
-            variables: {
-              source: {
-                id,
-                name,
-              },
-            },
-          })
-        );
-      },
-      renameSource: (id: string, name: string) => {
-        register(
-          renameSource({
-            variables: {
-              id,
+      createSource: async (name: string) => {
+        const res = await createSource({
+          variables: {
+            source: {
               name,
             },
-          })
-        );
+          },
+        });
+
+        if (res.errors?.length) {
+          // TODO: Handle errors properly
+          console.error(res.errors);
+          throw new Error("Faced graphql errors");
+        }
+
+        if (!res.data?.createSource) {
+          throw new Error("No source created");
+        }
+
+        return res.data.createSource;
       },
-      deleteSource: (id: string) => {
+      renameSource: async (id: number, name: string) => {
+        const res = await renameSource({
+          variables: {
+            id,
+            name,
+          },
+        });
+
+        if (res.errors?.length) {
+          // TODO: Handle errors properly
+          console.error(res.errors);
+          throw new Error("Faced graphql errors");
+        }
+
+        if (!res.data?.renameSource) {
+          throw new Error("Source doesn't exist");
+        }
+
+        return res.data.renameSource;
+      },
+      deleteSource: (id: number) => {
         register(
           deleteSource({
             variables: {

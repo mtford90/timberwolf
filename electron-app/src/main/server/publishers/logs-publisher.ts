@@ -4,6 +4,7 @@ import { Database } from "../database";
 import { WebsocketServer } from "../websockets";
 import { BaseWebsocketMessage } from "../websockets/validation";
 import { splitText } from "./split";
+import { DEFAULT_SOURCE } from "../websockets/constants";
 
 export type StdinReadStream = typeof process.stdin;
 
@@ -43,9 +44,19 @@ export class LogsPublisher extends Publisher<"logs"> {
     const incoming = data.toString();
     const split = splitText(incoming);
 
+    const sourceId = this.database.upsertSource("stdin");
+
     const dbEntries = this.database.insert(
-      split.map((s) => ({ sourceId: "stdin", text: s, timestamp: Date.now() }))
+      split.map((s) => ({ sourceId, text: s, timestamp: Date.now() }))
     );
+
+    const source = this.database.getSourceByName("stdin");
+
+    if (!source) {
+      throw new Error(
+        "Something went very wrong. The STDIN source was not created"
+      );
+    }
 
     dbEntries.forEach((entry) => {
       this.publish({
@@ -55,7 +66,7 @@ export class LogsPublisher extends Publisher<"logs"> {
         timestamp: new Date(entry.timestamp),
         source: {
           __typename: "Source",
-          id: "stdin",
+          ...source,
         },
       });
     });
@@ -63,9 +74,9 @@ export class LogsPublisher extends Publisher<"logs"> {
 
   private receiveWebsocketMessage = (message: BaseWebsocketMessage) => {
     const split = splitText(message.text);
-    const sourceId = message.id;
+    const { name, id } = message;
 
-    this.database.upsertSource(message.id, message.name);
+    const sourceId = id || this.database.upsertSource(name || DEFAULT_SOURCE);
 
     const toInsert = split.map((s) => {
       return {
@@ -79,6 +90,10 @@ export class LogsPublisher extends Publisher<"logs"> {
 
     const source = this.database.getSource(sourceId);
 
+    if (!source) {
+      throw new Error("Something went very wrong. Source was not created");
+    }
+
     rows.forEach((r) => {
       this.publish({
         __typename: "Log",
@@ -86,7 +101,6 @@ export class LogsPublisher extends Publisher<"logs"> {
         text: r.text,
         timestamp: new Date(r.timestamp),
         source: {
-          id: sourceId,
           ...source,
           __typename: "Source",
         },

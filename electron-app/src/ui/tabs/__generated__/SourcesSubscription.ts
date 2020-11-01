@@ -9,8 +9,8 @@
 
 export interface SourcesSubscription_source {
   __typename: "Source";
-  id: string;
-  name: string | null;
+  id: number;
+  name: string;
 }
 
 export interface SourcesSubscription {

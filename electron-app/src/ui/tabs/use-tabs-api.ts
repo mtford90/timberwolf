@@ -1,14 +1,14 @@
 import gql from "graphql-tag";
 import { useApolloClient, useQuery, useSubscription } from "@apollo/client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { sortBy, uniqBy } from "lodash";
-import { v4 as guid } from "uuid";
 import { TabEventsSubscription } from "./__generated__/TabEventsSubscription";
 import { SystemEvent } from "../../../__generated__/globalTypes";
-import { Source } from "../../graphql-types.generated";
 import { useSourcesAPI } from "../lib/api/use-sources-api";
 import { useLocalStorage } from "../lib/hooks/use-local-storage";
 import { SourcesSubscription } from "./__generated__/SourcesSubscription";
+import { generateName } from "../../common/id-generation";
+import { Source } from "../../graphql-types.generated";
 import { SourcesQuery } from "./__generated__/SourcesQuery";
 
 export const TAB_EVENTS_SUBSCRIPTION = gql`
@@ -16,18 +16,6 @@ export const TAB_EVENTS_SUBSCRIPTION = gql`
     systemEvent
   }
 `;
-
-interface Tab {
-  name: string;
-  id: string;
-}
-
-function sourceToTab(source: Source): Tab {
-  return {
-    name: source.name || source.id,
-    id: source.id,
-  };
-}
 
 export const SOURCES_QUERY = gql`
   query SourcesQuery {
@@ -50,10 +38,7 @@ export const SOURCES_SUBSCRIPTION = gql`
 function useSources() {
   const { data } = useQuery<SourcesQuery>(SOURCES_QUERY);
 
-  return useMemo(() => {
-    const source = data?.source;
-    return source?.map(sourceToTab) || [];
-  }, [data]);
+  return data?.source;
 }
 
 function useSourcesSubscription() {
@@ -62,10 +47,7 @@ function useSourcesSubscription() {
     {}
   );
 
-  return useMemo(() => {
-    const source = data?.source;
-    return source?.map(sourceToTab) || [];
-  }, [data]);
+  return data?.source;
 }
 
 /**
@@ -75,23 +57,28 @@ function useSourcesSubscription() {
  */
 export function useTabsApi() {
   const sources = useSources();
+
+  console.log("sources", sources);
+
   const latestSources = useSourcesSubscription();
+
+  console.log("latestSources", latestSources);
 
   const api = useSourcesAPI();
 
   const client = useApolloClient();
 
-  const [tabs, setTabs] = useLocalStorage<Tab[]>("tabs", sources);
+  const [tabs, setTabs] = useLocalStorage<Source[]>("tabs", sources || []);
 
-  const [selectedTabId, setSelectedTabId] = useLocalStorage<string | null>(
+  const [selectedTabId, setSelectedTabId] = useLocalStorage<number | null>(
     "selectedTab",
     null
   );
 
-  const [editingTab, setEditingTab] = useState<string | null>(null);
+  const [editingTab, setEditingTab] = useState<number | null>(null);
 
   const ensureTab = useCallback(
-    (firstTab: string) => {
+    (firstTab: number) => {
       setSelectedTabId((tab) => {
         if (!tab) {
           return firstTab;
@@ -129,7 +116,7 @@ export function useTabsApi() {
   }, [latestSources, setTabs, ensureTab]);
 
   const deleteTab = useCallback(
-    (id: string) => {
+    (id: number) => {
       api.deleteSource(id);
       setTabs((ss) => {
         const index = ss.findIndex((s) => s.id === id);
@@ -156,49 +143,48 @@ export function useTabsApi() {
   );
 
   const addTab = useCallback(
-    (name?: string) => {
-      const tabId = guid();
-      setTabs((ts) => {
-        if (name) {
-          api.createSource(tabId, name);
+    (name = "New Tab") => {
+      // TODO: Move name generation to server
+      const generatedName = generateName(
+        name,
+        tabs.map((t) => t.name)
+      );
 
-          return [...ts, { name, id: tabId }];
-        }
-        const numDefaultNamedTabs = ts.filter((t) =>
-          t.name.startsWith("New Tab")
-        ).length;
-
-        const defaultName = numDefaultNamedTabs
-          ? `New Tab ${numDefaultNamedTabs + 1}`
-          : `New Tab`;
-
-        api.createSource(tabId, defaultName);
-
-        return [...ts, { name: defaultName, id: tabId }];
-      });
-
-      setSelectedTabId(tabId);
-      setEditingTab(tabId);
-
-      return tabId;
+      api
+        .createSource(generatedName)
+        .then((source) => {
+          setSelectedTabId(source.id);
+          setEditingTab(source.id);
+          setTabs((ts) => {
+            return [...ts, source];
+          });
+        })
+        .catch((err) => {
+          // TODO: handle error
+          console.error(err);
+        });
     },
-    [api, setSelectedTabId, setTabs]
+    [api, setSelectedTabId, setEditingTab, setTabs, tabs]
   );
 
-  const renameTab = (id: string, name: string) => {
-    api.renameSource(id, name);
-    setTabs((ts) => {
-      const index = ts.findIndex((t) => t.id === id);
-      if (index > -1) {
-        const newTabs = [...ts];
-        newTabs[index] = {
-          id,
-          name,
-        };
-        return newTabs;
-      }
-      return ts;
-    });
+  const renameTab = (id: number, name: string) => {
+    api
+      .renameSource(id, name)
+      .then((source) => {
+        setTabs((ts) => {
+          const index = ts.findIndex((t) => t.id === id);
+          if (index > -1) {
+            const newTabs = [...ts];
+            newTabs[index] = source;
+            return newTabs;
+          }
+          return ts;
+        });
+      })
+      .catch((err) => {
+        // TODO: handle error
+        console.error(err);
+      });
   };
 
   const reorder = (startIndex: number, endIndex: number) => {

@@ -9,7 +9,8 @@
 
 export interface RenameSourceMutation_renameSource {
   __typename: "Source";
-  id: string;
+  id: number;
+  name: string;
 }
 
 export interface RenameSourceMutation {
@@ -17,6 +18,6 @@ export interface RenameSourceMutation {
 }
 
 export interface RenameSourceMutationVariables {
-  id: string;
+  id: number;
   name: string;
 }

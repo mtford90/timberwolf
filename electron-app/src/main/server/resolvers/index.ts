@@ -52,11 +52,11 @@ export function initialiseGQLResolvers({
           .getSources()
           .map((s) => ({ ...s, __typename: "Source" }));
       },
-      numLogs(parent, { source, beforeRowId, filter }) {
-        return database.numLogs(source, beforeRowId, filter);
+      numLogs(parent, { sourceId, beforeRowId, filter }) {
+        return database.numLogs(sourceId, beforeRowId, filter);
       },
-      suggest(parent, { source, limit, offset, prefix }) {
-        return database.suggest(source, prefix, {
+      suggest(parent, { sourceId, limit, offset, prefix }) {
+        return database.suggest(sourceId, prefix, {
           limit: limit || 10,
           offset: offset || 0,
         });
@@ -89,23 +89,27 @@ export function initialiseGQLResolvers({
     },
 
     Mutation: {
-      createSource(parent, { source }) {
-        database.upsertSource(source.id, source.name);
-        // The command line client should never be able to override the name of the tab, since it was set in the client
-        // TODO.TEST: Test that the mutation overrides the name
-        database.overrideSourceName(source.id, source.name);
+      createSource(parent, { source: inputSource }) {
+        const id = database.createSource(inputSource.name);
+        const source = database.getSource(id);
+
+        if (!source) {
+          throw new Error("Something went very wrong. Source was not created");
+        }
+
         return {
           ...source,
           __typename: "Source",
         };
       },
-      deleteSource(parent, { sourceId }) {
-        database.deleteSource(sourceId);
-        return sourceId;
+      deleteSource(parent, { id }) {
+        database.deleteSource(id);
+        return id;
       },
-      renameSource(parent, { sourceId, name }) {
-        database.overrideSourceName(sourceId, name);
-        const source = database.getSource(sourceId);
+      renameSource(parent, { id, name }) {
+        database.renameSource(id, name);
+        const source = database.getSource(id);
+
         return source
           ? {
               ...source,

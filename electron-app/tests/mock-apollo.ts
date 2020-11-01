@@ -6,7 +6,14 @@ import { getMainDefinition } from "@apollo/client/utilities";
 import { random } from "lodash";
 import schema from "../src/main/server/schema.graphql";
 import { Resolvers } from "../src/graphql-types.generated";
-import { UnwrapPromise } from "../src/common/type-utils";
+
+const servers: Array<{ stop: () => any }> = [];
+const httpServers: Array<{ close: () => any }> = [];
+
+export function stopAllServers() {
+  servers.forEach((s) => s.stop());
+  httpServers.forEach((s) => s.close());
+}
 
 /**
  * Create a mocked apollo server & client for use during testing.
@@ -24,18 +31,23 @@ export async function mockApollo(getResolvers: (pubSub: PubSub) => Resolvers) {
     resolvers: resolvers as never,
   });
 
-  const port = await getPort({ port: random(2000, 50000) });
+  const port = await getPort({ port: random(1000, 50000) });
 
   const { url, subscriptionsUrl, server: httpServer } = await server.listen(
     port
   );
+
+  console.log(`listening on ${port}`, {
+    url,
+    subscriptionsUrl,
+  });
 
   const httpLink = new HttpLink({ uri: url });
 
   const wsLink = new WebSocketLink({
     uri: subscriptionsUrl,
     options: {
-      reconnect: true,
+      reconnect: false,
     },
   });
 
@@ -58,18 +70,15 @@ export async function mockApollo(getResolvers: (pubSub: PubSub) => Resolvers) {
     cache,
   });
 
+  httpServers.push(httpServer);
+  servers.push(server);
+
   return {
     // This is the client for use with ApolloProvider
     client,
     // This is the pubSub instance for use with publishing data to graphql subscriptions
     pubSub,
     // This terminates the apollo server (and the underlying http server for good measure, since apollo's own stop method seems to be buggy...
-    stop: () => {
-      server.stop();
-      httpServer.close();
-    },
     resolvers,
   };
 }
-
-export type MockGQLEnvironment = UnwrapPromise<ReturnType<typeof mockApollo>>;

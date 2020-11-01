@@ -10,7 +10,8 @@ describe("getRows", () => {
         timestamp: new Date(),
         __typename: "Log",
         source: {
-          id: "stdin",
+          name: "stdin",
+          id: 1,
           __typename: "Source",
         },
       },
