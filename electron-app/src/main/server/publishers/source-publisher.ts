@@ -25,13 +25,13 @@ export class SourcePublisher extends Publisher<"source"> {
   dispose(): void {
     this.db.off("delete:source", this.handleEvent);
     this.db.off("update:source", this.handleEvent);
-    this.db.off("upsert:source", this.handleEvent);
+    this.db.off("create:source", this.handleEvent);
   }
 
   init(): void {
     this.db.on("delete:source", this.handleEvent);
     this.db.on("update:source", this.handleEvent);
-    this.db.on("upsert:source", this.handleEvent);
+    this.db.on("create:source", this.handleEvent);
   }
 
   handleEvent = () => {

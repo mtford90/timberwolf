@@ -92,7 +92,7 @@ export default function Root() {
                       return (
                         <Draggable
                           key={tab.id}
-                          draggableId={tab.id}
+                          draggableId={tab.id.toString()}
                           index={index}
                         >
                           {(draggableProvided) => {
@@ -134,7 +134,7 @@ export default function Root() {
         )}
         {selectedTabId ? (
           <LogsTab
-            source={selectedTabId}
+            sourceId={selectedTabId}
             filter={filter}
             onFilterChange={setFilter}
           />

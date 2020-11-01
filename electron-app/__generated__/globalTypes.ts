@@ -14,7 +14,6 @@ export enum SystemEvent {
 }
 
 export interface SourceInput {
-  id: string;
   name: string;
 }
 

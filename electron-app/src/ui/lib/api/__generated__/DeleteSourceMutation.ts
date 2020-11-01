@@ -8,9 +8,9 @@
 // ====================================================
 
 export interface DeleteSourceMutation {
-  deleteSource: string;
+  deleteSource: number;
 }
 
 export interface DeleteSourceMutationVariables {
-  id: string;
+  id: number;
 }

@@ -86,11 +86,11 @@ const DownArrowContainer = styled.span`
 
 export default function LogsTab({
   filter,
-  source,
+  sourceId,
   onFilterChange,
 }: {
   filter: string;
-  source: string;
+  sourceId: number;
   onFilterChange: (filter: string) => void;
 }) {
   const { loading, port } = useWebsocketPort();
@@ -99,7 +99,7 @@ export default function LogsTab({
 
   const { scroller, ref } = useScrollController();
 
-  const logs = useLogs(source, filter, {
+  const logs = useLogs(sourceId, filter, {
     onReset() {
       unseen.clear();
     },
@@ -121,7 +121,7 @@ export default function LogsTab({
   useEffect(() => {
     unseen.clear();
     scroller?.scrollToBottom();
-  }, [source]);
+  }, [sourceId]);
 
   const onScroll = useScrollTracking({
     scrollController: scroller,
@@ -162,7 +162,7 @@ export default function LogsTab({
       </ScrollContainer>
       <div>
         <FilterInput
-          source={source}
+          source={sourceId}
           onChangeText={(text) => {
             onFilterChange(text);
           }}
@@ -173,7 +173,7 @@ export default function LogsTab({
     <Container>
       <TimberwolfLogo />
       {Boolean(!loading && port) && (
-        <Example title="Pipe to stdin">{`cat /path/to/log.txt | timberwolf --id ${source} --port ${port}`}</Example>
+        <Example title="Pipe to stdin">{`cat /path/to/log.txt | timberwolf --id ${sourceId} --port ${port}`}</Example>
       )}
     </Container>
   );

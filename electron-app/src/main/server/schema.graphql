@@ -3,8 +3,8 @@ scalar Date
 scalar Time
 
 type Source {
-    id: String!
-    name: String
+    id: Int!
+    name: String!
 }
 
 type Log {
@@ -28,27 +28,26 @@ enum SystemEvent {
 
 type Query {
     numCpus: Int!
-    logs(sourceId: String!, limit: Int!, beforeRowId: Int, filter: String): [Log!]!
+    logs(sourceId: Int!, limit: Int!, beforeRowId: Int, filter: String): [Log!]!
     source: [Source!]!
-    numLogs(source: String!, beforeRowId: Int, filter: String): Int!
-    suggest(source: String!, prefix: String!, limit: Int, offset: Int): [String!]!
+    numLogs(sourceId: Int!, beforeRowId: Int, filter: String): Int!
+    suggest(sourceId: Int!, prefix: String!, limit: Int, offset: Int): [String!]!
     systemInfo: SystemInfo!
 }
 
 type Subscription {
-    logs(sourceId: String, filter: String): Log
+    logs(sourceId: Int!, filter: String): Log
     systemInfo: SystemInfo
     systemEvent: SystemEvent
     source: [Source!]!
 }
 
 input SourceInput {
-    id: String!
     name: String!
 }
 
 type Mutation {
     createSource(source: SourceInput!): Source
-    renameSource(sourceId: String!, name: String!): Source
-    deleteSource(sourceId: String!): String!
+    renameSource(id: Int!, name: String!): Source
+    deleteSource(id: Int!): Int!
 }

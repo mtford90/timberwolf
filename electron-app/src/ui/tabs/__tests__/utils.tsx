@@ -1,18 +1,17 @@
-import { ApolloProvider } from "@apollo/client";
-import { act, renderHook } from "@testing-library/react-hooks";
-import React from "react";
 import { mockApollo } from "../../../../tests/mock-apollo";
-import { Log } from "../../../graphql-types.generated";
-import { useTabsApi } from "../use-tabs-api";
-import { UnwrapPromise } from "../../../common/type-utils";
 
-export async function getTestHarness(config: { sources?: string[] } = {}) {
-  let { sources = [] } = config;
+export async function getTestHarness(
+  config: { sources?: Array<{ id: number; name: string }> } = {}
+) {
+  const { sources = [] } = config;
 
   const mockedApollo = await mockApollo((pubSub) => ({
     Query: {
       source: () =>
-        sources.map((id) => ({ id, __typename: "Source" as const })),
+        sources.map((source) => ({
+          ...source,
+          __typename: "Source" as const,
+        })),
     },
     Subscription: {
       logs: {
@@ -27,59 +26,45 @@ export async function getTestHarness(config: { sources?: string[] } = {}) {
       source: {
         subscribe: () => pubSub.asyncIterator(["source"]),
         resolve: () =>
-          sources.map((id) => ({ id, __typename: "Source" as const })),
+          sources.map((source) => ({
+            ...source,
+            __typename: "Source" as const,
+          })),
       },
     },
     Mutation: {
-      deleteSource: jest.fn((parent, { sourceId }) => sourceId),
+      deleteSource: jest.fn((parent, { id }) => {
+        const index = sources.findIndex((s) => s.id === id);
+        if (index > -1) {
+          sources.splice(index, 1);
+        }
+        return id;
+      }),
+      renameSource: jest.fn((parent, { id, name }) => {
+        const sourceToRename = sources.find((s) => s.id === id);
+        if (sourceToRename) {
+          sourceToRename.name = name;
+          return { ...sourceToRename, __typename: "Source" as const };
+        }
+        throw new Error("No such source");
+      }),
+      createSource: (parent, { source }) => {
+        const newSource = {
+          ...source,
+          id: sources.length,
+        };
+        sources.push(newSource);
+        return {
+          ...newSource,
+          __typename: "Source" as const,
+        };
+      },
     },
   }));
 
-  const utils = renderHook(() => useTabsApi(), {
-    wrapper: ({ children }) => (
-      <ApolloProvider client={mockedApollo.client}>
-        <>{children as any}</>
-      </ApolloProvider>
-    ),
-  });
-
   return {
-    ...utils,
-    selectTab: async (tabId: string) => {
-      act(() => utils.result.current.setSelectedTabId(tabId));
-      await utils.waitFor(() =>
-        Boolean(utils.result.current.selectedTabId === tabId)
-      );
-    },
     ...mockedApollo,
-    emitLog: (log: Log) => {
-      setImmediate(() => {
-        mockedApollo.pubSub
-          .publish("logs", {
-            logs: log,
-          })
-          .catch((err) => {
-            console.error(err);
-          });
-      });
-    },
-    updateSources: (newSources: string[]) => {
-      sources = newSources;
-      setImmediate(() => {
-        mockedApollo.pubSub
-          .publish("source", {
-            source: newSources.map((s) => ({
-              id: s,
-              name: s,
-              __typename: "Source",
-            })),
-          })
-          .catch((err) => {
-            console.error(err);
-          });
-      });
-    },
-    addSource: (newSource: string) => {
+    addSource: (newSource: { id: number; name: string }) => {
       sources.push(newSource);
       setImmediate(() => {
         mockedApollo.pubSub
@@ -97,5 +82,3 @@ export async function getTestHarness(config: { sources?: string[] } = {}) {
     },
   };
 }
-
-export type TestHarness = UnwrapPromise<ReturnType<typeof getTestHarness>>;

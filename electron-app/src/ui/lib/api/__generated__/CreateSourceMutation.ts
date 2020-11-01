@@ -11,7 +11,8 @@ import { SourceInput } from "./../../../../../__generated__/globalTypes";
 
 export interface CreateSourceMutation_createSource {
   __typename: "Source";
-  id: string;
+  id: number;
+  name: string;
 }
 
 export interface CreateSourceMutation {

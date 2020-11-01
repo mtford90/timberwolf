@@ -6,12 +6,12 @@ import {
 } from "./__generated__/NumLogsQuery";
 
 export const NUM_LOGS_QUERY = gql`
-  query NumLogsQuery($source: String!, $rowId: Int, $filter: String) {
-    numLogs(source: $source, beforeRowId: $rowId, filter: $filter)
+  query NumLogsQuery($source: Int!, $rowId: Int, $filter: String) {
+    numLogs(sourceId: $source, beforeRowId: $rowId, filter: $filter)
   }
 `;
 
-export function useNumLogs(source: string, rowId?: number, filter?: string) {
+export function useNumLogs(source: number, rowId?: number, filter?: string) {
   const { data, loading } = useQuery<NumLogsQuery, NumLogsQueryVariables>(
     NUM_LOGS_QUERY,
     {

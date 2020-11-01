@@ -5,6 +5,7 @@ import { deepMock } from "../../../../tests/util";
 import { Database } from "../database";
 import { WebsocketServer } from "../websockets";
 import { WebsocketMessage } from "../websockets/validation";
+import { DEFAULT_SOURCE } from "../websockets/constants";
 
 describe("logs publisher", () => {
   let pubSub: PubSub;
@@ -63,7 +64,7 @@ describe("logs publisher", () => {
               logs: expect.objectContaining({
                 text: "testing",
                 source: expect.objectContaining({
-                  id: "stdin",
+                  name: "stdin",
                 }),
               }),
             })
@@ -76,9 +77,10 @@ describe("logs publisher", () => {
       it("should store the line", async () => {
         const line = "testing";
         stdinEmitter.emit("data", Buffer.from(line, "utf8"));
+        const sourceId = database.getSourceByName("stdin")?.id;
         expect(database.insert).toHaveBeenCalledWith(
           expect.arrayContaining([
-            expect.objectContaining({ text: "testing", sourceId: "stdin" }),
+            expect.objectContaining({ text: "testing", sourceId }),
           ])
         );
       });
@@ -87,12 +89,13 @@ describe("logs publisher", () => {
         it("should split into multiple logs", async () => {
           const incoming = "my log\nmy second log";
           stdinEmitter.emit("data", Buffer.from(incoming, "utf8"));
+          const sourceId = database.getSourceByName("stdin")?.id;
           expect(database.insert).toHaveBeenCalledWith(
             expect.arrayContaining([
-              expect.objectContaining({ text: "my log", sourceId: "stdin" }),
+              expect.objectContaining({ text: "my log", sourceId }),
               expect.objectContaining({
                 text: "my second log",
-                sourceId: "stdin",
+                sourceId,
               }),
             ])
           );
@@ -106,36 +109,40 @@ describe("logs publisher", () => {
 
         const message: WebsocketMessage = {
           name: "my logger",
-          id: "my logger",
           timestamp,
           text: "a log",
         };
 
-        // it("should publish", (done) => {
-        //   pubSub.subscribe("logs", (received) => {
-        //     console.log(received);
+        it("should publish", (done) => {
+          pubSub.subscribe("logs", (received) => {
+            console.log(received);
 
-        //     expect(received).toEqual(
-        //       expect.objectContaining({
-        //         logs: expect.objectContaining({
-        //           source: "my logger",
-        //           timestamp,
-        //           text: "a log",
-        //         }),
-        //       })
-        //     );
+            expect(received).toEqual(
+              expect.objectContaining({
+                logs: expect.objectContaining({
+                  source: expect.objectContaining({
+                    name: "my logger",
+                  }),
+                  text: "a log",
+                }),
+              })
+            );
 
-        //     done();
-        //   });
+            expect(received.logs.timestamp).toEqual(new Date(timestamp));
 
-        //   websocketEmitter.emit("message", message);
-        // });
+            done();
+          });
+
+          websocketEmitter.emit("message", message);
+        });
 
         it("should store the log", async () => {
           websocketEmitter.emit("message", message);
 
+          const sourceId = database.getSourceByName("my logger")?.id;
+
           expect(database.insert).toHaveBeenCalledWith([
-            { text: "a log", sourceId: "my logger", timestamp },
+            { text: "a log", sourceId, timestamp },
           ]);
         });
       });
@@ -147,24 +154,92 @@ describe("logs publisher", () => {
 
         const message: WebsocketMessage = {
           name: websocketName,
-          id: websocketName,
           timestamp,
           text: "a log\nanother log",
         };
 
         it("should split into multiple logs", async () => {
           websocketEmitter.emit("message", message);
+          const sourceId = database.getSourceByName(websocketName)?.id;
           expect(database.insert).toHaveBeenCalledWith(
             expect.arrayContaining([
               expect.objectContaining({
                 text: "a log",
                 timestamp,
-                sourceId: websocketName,
+                sourceId,
               }),
               expect.objectContaining({
                 text: "another log",
                 timestamp,
-                sourceId: websocketName,
+                sourceId,
+              }),
+            ])
+          );
+        });
+      });
+
+      describe("when only id provided", () => {
+        it("should use that id", async () => {
+          const sourceId = database.createSource("my source");
+
+          const message: WebsocketMessage = {
+            id: sourceId,
+            timestamp: 123,
+            text: "a log",
+          };
+
+          websocketEmitter.emit("message", message);
+
+          expect(database.insert).toHaveBeenCalledWith(
+            expect.arrayContaining([
+              expect.objectContaining({
+                text: "a log",
+                sourceId,
+              }),
+            ])
+          );
+        });
+      });
+
+      describe("when only name provided", () => {
+        it("should upsert based on the name", async () => {
+          const message: WebsocketMessage = {
+            timestamp: 123,
+            text: "a log",
+            name: "my source",
+          };
+
+          websocketEmitter.emit("message", message);
+
+          const sourceId = database.getSourceByName("my source")?.id;
+
+          expect(database.insert).toHaveBeenCalledWith(
+            expect.arrayContaining([
+              expect.objectContaining({
+                text: "a log",
+                sourceId,
+              }),
+            ])
+          );
+        });
+      });
+
+      describe("when neither name or id provided", () => {
+        it("should use default name", async () => {
+          const message: WebsocketMessage = {
+            timestamp: 123,
+            text: "a log",
+          };
+
+          websocketEmitter.emit("message", message);
+
+          const sourceId = database.getSourceByName(DEFAULT_SOURCE)?.id;
+
+          expect(database.insert).toHaveBeenCalledWith(
+            expect.arrayContaining([
+              expect.objectContaining({
+                text: "a log",
+                sourceId,
               }),
             ])
           );

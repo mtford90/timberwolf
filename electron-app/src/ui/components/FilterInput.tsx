@@ -44,8 +44,8 @@ const Suggestion = styled.div`
 `;
 
 const SUGGESTIONS_QUERY = gql`
-  query Suggest($source: String!, $prefix: String!) {
-    suggest(source: $source, prefix: $prefix)
+  query Suggest($sourceId: Int!, $prefix: String!) {
+    suggest(sourceId: $sourceId, prefix: $prefix)
   }
 `;
 
@@ -57,13 +57,13 @@ function escapeRegExp(str: string) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function useSuggestions(source: string, debouncedFilter: string) {
+function useSuggestions(sourceId: number, debouncedFilter: string) {
   // TODO: Handle loading & error (nprogress?
   const trimmed = useMemo(() => debouncedFilter.trim(), [debouncedFilter]);
 
   const { data } = useQuery<Suggest, SuggestVariables>(SUGGESTIONS_QUERY, {
     variables: {
-      source,
+      sourceId,
       prefix: trimmed,
     },
     skip: !trimmed,
@@ -76,7 +76,7 @@ export default function FilterInput({
   source,
   onChangeText,
 }: {
-  source: string;
+  source: number;
   onChangeText: (text: string) => void;
 }) {
   const [filters, setFilters] = useState<{ [source: string]: string }>({});

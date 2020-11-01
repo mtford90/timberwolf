@@ -1,14 +1,15 @@
 CREATE TABLE IF NOT EXISTS sources
 (
-    id                   text NOT NULL,
-    name                 text,
-    override_name        text,
-    PRIMARY KEY (id)
+    id            integer PRIMARY KEY,
+    name          text NOT NULL
 );
+
+CREATE UNIQUE INDEX index_source_name
+    ON sources (name);
 
 CREATE TABLE IF NOT EXISTS logs
 (
-    source_id text    NOT NULL,
+    source_id integer NOT NULL,
     timestamp integer NOT NULL,
     text      text    NOT NULL,
     FOREIGN KEY (source_id) REFERENCES sources (id)
@@ -20,7 +21,7 @@ CREATE INDEX IF NOT EXISTS idx_timestamp
 
 CREATE TABLE IF NOT EXISTS words
 (
-    source_id text    NOT NULL,
+    source_id integer NOT NULL,
     text      text    NOT NULL,
     num       integer NOT NULL,
     UNIQUE (source_id, text),

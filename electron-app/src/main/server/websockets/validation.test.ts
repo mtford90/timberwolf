@@ -7,7 +7,7 @@ describe("websocket message validation", () => {
         it("should return message", async () => {
           const payload = {
             name: "my tab",
-            id: "my tab",
+            id: 1,
             timestamp: 2,
             text: "[debug] hello",
           };
@@ -22,7 +22,7 @@ describe("websocket message validation", () => {
         it("should add a timestamp & return message", async () => {
           const payload = {
             name: "my tab",
-            id: "my tab",
+            id: 1,
             text: "[debug] hello",
           };
 
