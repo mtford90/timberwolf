@@ -61,4 +61,43 @@ describe("websocket message validation", () => {
       expect(typeof res.timestamp === "number").toBeTruthy();
     });
   });
+
+  describe("when console log", () => {
+    describe("when using levels", () => {
+      const timestamp = Date.now();
+
+      const shared = {
+        name: "my tab",
+        id: "my-tab",
+        timestamp,
+        text: "hello",
+        source: "console",
+      };
+
+      test.each([["debug", "info", "log", "error", "warn"]])(
+        "should accept %s level",
+        async (level) => {
+          await expect(
+            parseMessage(
+              JSON.stringify({
+                ...shared,
+                level,
+              })
+            )
+          ).resolves.toBeTruthy();
+        }
+      );
+
+      it("should not accept any other value", async () => {
+        await expect(
+          parseMessage(
+            JSON.stringify({
+              ...shared,
+              level: "blah",
+            })
+          )
+        ).rejects.toBeTruthy();
+      });
+    });
+  });
 });

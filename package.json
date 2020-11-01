@@ -3,7 +3,8 @@
   "workspaces": {
     "packages": [
       "./electron-app",
-      "./command-line-client"
+      "./command-line-client",
+      "./javascript-client"
     ],
     "nohoist": [
       "**"

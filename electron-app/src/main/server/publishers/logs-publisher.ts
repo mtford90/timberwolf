@@ -2,7 +2,7 @@ import { PubSub } from "graphql-subscriptions";
 import { Publisher } from "./publisher";
 import { Database } from "../database";
 import { WebsocketServer } from "../websockets";
-import { WebsocketMessage } from "../websockets/validation";
+import { BaseWebsocketMessage } from "../websockets/validation";
 import { splitText } from "./split";
 
 export type StdinReadStream = typeof process.stdin;
@@ -61,7 +61,7 @@ export class LogsPublisher extends Publisher<"logs"> {
     });
   };
 
-  private receiveWebsocketMessage = (message: WebsocketMessage) => {
+  private receiveWebsocketMessage = (message: BaseWebsocketMessage) => {
     const split = splitText(message.text);
     const sourceId = message.id;
 
