@@ -6,7 +6,8 @@
   "module": "dist/index.esm.js",
   "files": [
     "dist",
-    "package.json"
+    "package.json",
+    "README.md"
   ],
   "scripts": {
     "build": "rollup -c rollup.config.js"
