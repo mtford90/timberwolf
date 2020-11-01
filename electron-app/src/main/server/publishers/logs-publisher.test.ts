@@ -4,7 +4,7 @@ import { LogsPublisher } from "./logs-publisher";
 import { deepMock } from "../../../../tests/util";
 import { Database } from "../database";
 import { WebsocketServer } from "../websockets";
-import { WebsocketMessage } from "../websockets/validation";
+import { BaseWebsocketMessage } from "../websockets/validation";
 
 describe("logs publisher", () => {
   let pubSub: PubSub;
@@ -104,7 +104,7 @@ describe("logs publisher", () => {
       describe("when incoming text has no newlines", () => {
         const timestamp = 123;
 
-        const message: WebsocketMessage = {
+        const message: BaseWebsocketMessage = {
           name: "my logger",
           id: "my logger",
           timestamp,
@@ -145,7 +145,7 @@ describe("logs publisher", () => {
 
         const websocketName = "my logger";
 
-        const message: WebsocketMessage = {
+        const message: BaseWebsocketMessage = {
           name: websocketName,
           id: websocketName,
           timestamp,
