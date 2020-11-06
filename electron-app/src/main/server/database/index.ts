@@ -265,7 +265,7 @@ export class Database {
     { limit = 10, offset = 0 }: { limit?: number; offset?: number } = {}
   ) {
     const query = this.db.prepare(
-      `SELECT source_id,text,num FROM words WHERE text LIKE '${prefix}%' AND source_id = ${sourceId} ORDER BY num DESC LIMIT ${limit} OFFSET ${offset}`
+      `SELECT source_id,text,num FROM words WHERE text LIKE '${prefix}%' AND source_id = ${sourceId} ORDER BY num DESC, length(text) LIMIT ${limit} OFFSET ${offset}`
     );
 
     const suggestions = query.all().map((r) => r.text);
