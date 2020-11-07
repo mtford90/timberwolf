@@ -352,6 +352,24 @@ describe("database", () => {
         expect(res).toBe(null);
       });
 
+      it("should delete all associated logs", async () => {
+        const id = db.createSource("xyz");
+        await db.insert([
+          {
+            sourceId: id,
+            text: "hi",
+            timestamp: Date.now(),
+          },
+        ]);
+        const logsBeforeDelete = await db.getLogs(id);
+        expect(logsBeforeDelete).toHaveLength(1);
+        db.deleteSource(id);
+        const res = db.getSource(id);
+        expect(res).toBe(null);
+        const logs = await db.getLogs(id);
+        expect(logs).toHaveLength(0);
+      });
+
       it("should emit an event", async () => {
         const id = db.createSource("xyz");
         const spy = jest.fn();

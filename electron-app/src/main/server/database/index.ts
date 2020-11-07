@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-var-requires,global-require */
 import sqlite, { Database as SqliteDatabase } from "better-sqlite3";
 import { compact, groupBy, flatten, keys } from "lodash";
 import mitt from "mitt";
-import createSql from "./create.sql";
 import { generateName } from "../../../common/id-generation";
 
 type LogFieldList = Array<"rowid" | "source_id" | "timestamp" | "text">;
@@ -31,7 +31,7 @@ export class Database {
   }
 
   init() {
-    this.db.exec(createSql);
+    this.db.exec(require("./create.sql"));
   }
 
   createSource(preferredName: string) {
@@ -244,15 +244,8 @@ export class Database {
     return this.db.prepare(sql).get().n;
   }
 
-  clear(sourceId: string) {
-    this.db.exec(`DELETE FROM logs WHERE logs.source_id = '${sourceId}'`);
-    this.db.exec(`DELETE FROM sources WHERE id='${sourceId}'`);
-  }
-
   clearAll() {
-    this.db.exec("DELETE FROM logs");
-    this.db.exec("DELETE FROM words");
-    this.db.exec("DELETE FROM sources");
+    this.db.exec(require("./clear-all.sql"));
   }
 
   close() {
@@ -264,11 +257,17 @@ export class Database {
     prefix: string,
     { limit = 10, offset = 0 }: { limit?: number; offset?: number } = {}
   ) {
-    const query = this.db.prepare(
-      `SELECT source_id,text,num FROM words WHERE text LIKE '${prefix}%' AND source_id = ${sourceId} ORDER BY num DESC, length(text) LIMIT ${limit} OFFSET ${offset}`
-    );
+    // TODO: test the secondary order length(text)
+    const query = this.db.prepare(require("./suggest.sql"));
 
-    const suggestions = query.all().map((r) => r.text);
+    const suggestions = query
+      .all({
+        query: `${prefix}%`,
+        sourceId,
+        limit,
+        offset,
+      })
+      .map((r) => r.text);
 
     if (suggestions[0]?.toLowerCase() === prefix.toLowerCase()) {
       suggestions.shift();
