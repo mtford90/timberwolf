@@ -46,10 +46,12 @@ describe("resolvers", () => {
               getMany: jest.fn(() => mockLines),
               findMany: jest.fn(() => mockLines),
             },
-            getSource: jest.fn(() => ({
-              id: 1,
-              name: "stdin",
-            })),
+            sources: {
+              get: jest.fn(() => ({
+                id: 1,
+                name: "stdin",
+              })),
+            },
           },
         });
 
@@ -103,10 +105,12 @@ describe("resolvers", () => {
               getMany: jest.fn(() => mockLines),
               findMany: jest.fn(() => mockLines),
             },
-            getSource: jest.fn(() => ({
-              name: "stdin",
-              id: 1,
-            })),
+            sources: {
+              get: jest.fn(() => ({
+                name: "stdin",
+                id: 1,
+              })),
+            },
           },
         });
 
@@ -150,7 +154,9 @@ describe("resolvers", () => {
       it("should call the database suggest api", async () => {
         const deps = deepMock<ResolverDependencies>({
           database: {
-            suggest: jest.fn(() => ["hello"]),
+            suggestions: {
+              suggest: jest.fn(() => ["hello"]),
+            },
           },
         });
 
@@ -169,7 +175,7 @@ describe("resolvers", () => {
 
         expect(result).toEqual(["hello"]);
 
-        expect(deps.database.suggest).toHaveBeenCalledWith(1, "h", {
+        expect(deps.database.suggestions.suggest).toHaveBeenCalledWith(1, "h", {
           limit: 20,
           offset: 10,
         });

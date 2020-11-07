@@ -44,13 +44,13 @@ export class LogsPublisher extends Publisher<"logs"> {
     const incoming = data.toString();
     const split = splitText(incoming);
 
-    const sourceId = this.database.upsertSource("stdin");
+    const sourceId = this.database.sources.upsert("stdin");
 
     const dbEntries = this.database.logs.insert(
       split.map((s) => ({ sourceId, text: s, timestamp: Date.now() }))
     );
 
-    const source = this.database.getSourceByName("stdin");
+    const source = this.database.sources.getByName("stdin");
 
     if (!source) {
       throw new Error(
@@ -76,7 +76,7 @@ export class LogsPublisher extends Publisher<"logs"> {
     const split = splitText(message.text);
     const { name, id } = message;
 
-    const sourceId = id || this.database.upsertSource(name || DEFAULT_SOURCE);
+    const sourceId = id || this.database.sources.upsert(name || DEFAULT_SOURCE);
 
     const toInsert = split.map((s) => {
       return {
@@ -88,7 +88,7 @@ export class LogsPublisher extends Publisher<"logs"> {
 
     const rows = this.database.logs.insert(toInsert);
 
-    const source = this.database.getSource(sourceId);
+    const source = this.database.sources.get(sourceId);
 
     if (!source) {
       throw new Error("Something went very wrong. Source was not created");

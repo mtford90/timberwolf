@@ -1,16 +1,11 @@
 /* eslint-disable @typescript-eslint/no-var-requires,global-require */
 import sqlite, { Database as SqliteDatabase } from "better-sqlite3";
 import mitt from "mitt";
-import { generateName } from "../../../common/id-generation";
 import { logsApi, LogsApi } from "./api/logs";
 import { suggestionsApi, SuggestionsAPI } from "./api/suggestions";
+import { SourcesAPI, sourcesApi } from "./api/sources";
 
 type Emitter = ReturnType<typeof mitt>;
-
-type DatabaseSource = {
-  name: string;
-  id: number;
-};
 
 export class Database {
   private db: SqliteDatabase;
@@ -21,6 +16,8 @@ export class Database {
 
   public readonly suggestions: SuggestionsAPI;
 
+  public readonly sources: SourcesAPI;
+
   constructor(path = ":memory:", emitter = mitt()) {
     this.db = sqlite(path);
     this.emitter = emitter;
@@ -30,102 +27,15 @@ export class Database {
       });
     });
     this.suggestions = suggestionsApi(this.db);
+    this.sources = sourcesApi(this.db, {
+      onUpdate: (id) => this.emit("update:source", id),
+      onCreate: (id) => this.emit("create:source", id),
+      onDelete: (id) => this.emit("delete:source", id),
+    });
   }
 
   init() {
     this.db.exec(require("./create.sql"));
-  }
-
-  createSource(preferredName: string) {
-    let rowid: number | undefined;
-
-    const getNames = this.db.prepare(`SELECT DISTINCT name FROM sources`);
-
-    this.db.transaction(() => {
-      const names = getNames.all().map((r) => r.name);
-      const name = generateName(preferredName, names);
-
-      const insert = this.db.prepare(`INSERT INTO sources(name) VALUES(@name)`);
-
-      rowid = insert.run({ name }).lastInsertRowid as number;
-    })();
-
-    if (!rowid) {
-      throw new Error("Transaction failed");
-    }
-
-    this.emit("create:source", rowid);
-
-    return rowid;
-  }
-
-  upsertSource(name: string) {
-    const upsert = this.db.prepare(
-      `INSERT OR IGNORE INTO sources(name) VALUES(@name)`
-    );
-
-    return upsert.run({ name }).lastInsertRowid as number;
-  }
-
-  updateSource(id: number, name: string) {
-    this.db
-      .prepare(`UPDATE sources SET name='${name}' WHERE id=@id`)
-      .run({ id });
-
-    this.emit("update:source", id);
-  }
-
-  getSources(): Array<DatabaseSource> {
-    const stmt = this.db.prepare(`SELECT * from sources`);
-    return stmt.all().map((r) => ({
-      id: r.id,
-      name: r.name || null,
-    }));
-  }
-
-  getSource(id: number): DatabaseSource | null {
-    const stmt = this.db.prepare(`SELECT id,name from sources WHERE id=@id`);
-
-    const r = stmt.get({ id });
-
-    if (r) {
-      return {
-        id: r.id,
-        name: r.name,
-      };
-    }
-
-    return null;
-  }
-
-  getSourceByName(name: string): DatabaseSource | null {
-    const stmt = this.db.prepare(
-      `SELECT id,name from sources WHERE name=@name`
-    );
-
-    const r = stmt.get({ name });
-
-    if (r) {
-      return {
-        id: r.id,
-        name: r.name,
-      };
-    }
-
-    return null;
-  }
-
-  /**
-   * Always display overidden name on the client. User would not expect the name to change
-   */
-  renameSource(id: number, name: string) {
-    this.db.exec(`UPDATE sources SET name='${name}' WHERE id=${id}`);
-    this.emit("update:source", id);
-  }
-
-  deleteSource(id: number) {
-    this.db.exec(`DELETE FROM sources WHERE id=${id}`);
-    this.emit("delete:source", id);
   }
 
   clearAll() {

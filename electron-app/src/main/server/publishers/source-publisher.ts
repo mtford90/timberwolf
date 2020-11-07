@@ -14,7 +14,7 @@ export class SourcePublisher extends Publisher<"source"> {
    * Emit all sources to graphql subscriptions
    */
   private publishSources() {
-    const sources = this.db.getSources();
+    const sources = this.db.sources.all();
     const gqlSources = sources.map((source) => ({
       ...source,
       __typename: "Source" as const,

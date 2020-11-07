@@ -28,7 +28,7 @@ export function initialiseGQLResolvers({
         return os.cpus().length;
       },
       logs(parent, { sourceId, limit, beforeRowId, filter }) {
-        const source = database.getSource(sourceId);
+        const source = database.sources.get(sourceId);
 
         if (!source) {
           throw new Error("No such source");
@@ -48,15 +48,15 @@ export function initialiseGQLResolvers({
           }));
       },
       source() {
-        return database
-          .getSources()
+        return database.sources
+          .all()
           .map((s) => ({ ...s, __typename: "Source" }));
       },
       numLogs(parent, { sourceId, beforeRowId, filter }) {
         return database.logs.count(sourceId, beforeRowId, filter);
       },
       suggest(parent, { sourceId, limit, offset, prefix }) {
-        return database.suggest(sourceId, prefix, {
+        return database.suggestions.suggest(sourceId, prefix, {
           limit: limit || 10,
           offset: offset || 0,
         });
@@ -82,16 +82,16 @@ export function initialiseGQLResolvers({
       source: {
         subscribe: () => publishers.source.asyncIterator(),
         resolve: () =>
-          database
-            .getSources()
+          database.sources
+            .all()
             .map((s) => ({ ...s, __typename: "Source" as const })),
       },
     },
 
     Mutation: {
       createSource(parent, { source: inputSource }) {
-        const id = database.createSource(inputSource.name);
-        const source = database.getSource(id);
+        const id = database.sources.create(inputSource.name);
+        const source = database.sources.get(id);
 
         if (!source) {
           throw new Error("Something went very wrong. Source was not created");
@@ -103,12 +103,12 @@ export function initialiseGQLResolvers({
         };
       },
       deleteSource(parent, { id }) {
-        database.deleteSource(id);
+        database.sources.delete(id);
         return id;
       },
       renameSource(parent, { id, name }) {
-        database.renameSource(id, name);
-        const source = database.getSource(id);
+        database.sources.rename(id, name);
+        const source = database.sources.get(id);
 
         return source
           ? {

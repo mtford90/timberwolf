@@ -77,7 +77,7 @@ describe("logs publisher", () => {
       it("should store the line", async () => {
         const line = "testing";
         stdinEmitter.emit("data", Buffer.from(line, "utf8"));
-        const sourceId = database.getSourceByName("stdin")?.id;
+        const sourceId = database.sources.getByName("stdin")?.id;
         expect(database.logs.insert).toHaveBeenCalledWith(
           expect.arrayContaining([
             expect.objectContaining({ text: "testing", sourceId }),
@@ -89,7 +89,7 @@ describe("logs publisher", () => {
         it("should split into multiple logs", async () => {
           const incoming = "my log\nmy second log";
           stdinEmitter.emit("data", Buffer.from(incoming, "utf8"));
-          const sourceId = database.getSourceByName("stdin")?.id;
+          const sourceId = database.sources.getByName("stdin")?.id;
           expect(database.logs.insert).toHaveBeenCalledWith(
             expect.arrayContaining([
               expect.objectContaining({ text: "my log", sourceId }),
@@ -139,7 +139,7 @@ describe("logs publisher", () => {
         it("should store the log", async () => {
           websocketEmitter.emit("message", message);
 
-          const sourceId = database.getSourceByName("my logger")?.id;
+          const sourceId = database.sources.getByName("my logger")?.id;
 
           expect(database.logs.insert).toHaveBeenCalledWith([
             { text: "a log", sourceId, timestamp },
@@ -160,7 +160,7 @@ describe("logs publisher", () => {
 
         it("should split into multiple logs", async () => {
           websocketEmitter.emit("message", message);
-          const sourceId = database.getSourceByName(websocketName)?.id;
+          const sourceId = database.sources.getByName(websocketName)?.id;
           expect(database.logs.insert).toHaveBeenCalledWith(
             expect.arrayContaining([
               expect.objectContaining({
@@ -180,7 +180,7 @@ describe("logs publisher", () => {
 
       describe("when only id provided", () => {
         it("should use that id", async () => {
-          const sourceId = database.createSource("my source");
+          const sourceId = database.sources.create("my source");
 
           const message: WebsocketMessage = {
             id: sourceId,
@@ -211,7 +211,7 @@ describe("logs publisher", () => {
 
           websocketEmitter.emit("message", message);
 
-          const sourceId = database.getSourceByName("my source")?.id;
+          const sourceId = database.sources.getByName("my source")?.id;
 
           expect(database.logs.insert).toHaveBeenCalledWith(
             expect.arrayContaining([
@@ -233,7 +233,7 @@ describe("logs publisher", () => {
 
           websocketEmitter.emit("message", message);
 
-          const sourceId = database.getSourceByName(DEFAULT_SOURCE)?.id;
+          const sourceId = database.sources.getByName(DEFAULT_SOURCE)?.id;
 
           expect(database.logs.insert).toHaveBeenCalledWith(
             expect.arrayContaining([
