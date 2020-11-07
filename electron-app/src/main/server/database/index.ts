@@ -1,19 +1,10 @@
 /* eslint-disable @typescript-eslint/no-var-requires,global-require */
 import sqlite, { Database as SqliteDatabase } from "better-sqlite3";
-import { compact, groupBy, flatten, keys } from "lodash";
 import mitt from "mitt";
 import { generateName } from "../../../common/id-generation";
+import { logsApi, LogsApi } from "./api/logs";
 
-type LogFieldList = Array<"rowid" | "source_id" | "timestamp" | "text">;
 type Emitter = ReturnType<typeof mitt>;
-
-export type LogRow = {
-  rowid: number;
-  // eslint-disable-next-line camelcase
-  source_id: string;
-  timestamp: number;
-  text: string;
-};
 
 type DatabaseSource = {
   name: string;
@@ -25,9 +16,16 @@ export class Database {
 
   private emitter: Emitter;
 
+  public readonly logs: LogsApi;
+
   constructor(path = ":memory:", emitter = mitt()) {
     this.db = sqlite(path);
     this.emitter = emitter;
+    this.logs = logsApi(this.db, (entries) => {
+      entries.forEach(([source, words]) => {
+        this.insertWords(source, words);
+      });
+    });
   }
 
   init() {
@@ -133,115 +131,6 @@ export class Database {
     );
 
     words.forEach((word) => upsert.run({ sourceId, text: word }));
-  }
-
-  insert(rows: Array<{ sourceId: number; timestamp?: number; text: string }>) {
-    const insertLog = this.db.prepare(
-      "INSERT INTO logs (source_id, timestamp, text) VALUES (?,?,?)"
-    );
-
-    const rowIds = rows.map(({ sourceId, timestamp, text }) => {
-      return insertLog.run(sourceId, timestamp || Date.now(), text)
-        .lastInsertRowid as number;
-    });
-
-    const entries = this.getWords(rows);
-    entries.forEach(([source, words]) => {
-      this.insertWords(source, words);
-    });
-
-    return rowIds ? this.getManyLogs(compact(rowIds)) : [];
-  }
-
-  private getWords(
-    rows: Array<{ sourceId: number; timestamp?: number; text: string }>
-  ) {
-    const grouped = groupBy(
-      rows.map((r) => {
-        const withoutSymbols = r.text.replace(
-          /[-!$%^&*()_+|~=`{}[\]:";'<>?,./]/g,
-          " "
-        );
-
-        return {
-          sourceId: r.sourceId,
-          words: [
-            ...withoutSymbols.split(/\s/g),
-            ...r.text.split(/(?!\(.*)\s(?![^(]*?\))/g),
-          ],
-        };
-      }),
-      (r) => r.sourceId
-    );
-
-    const entries: [number, string[]][] = [];
-
-    keys(grouped).forEach((source) => {
-      const words = compact(flatten(grouped[source].map((g) => g.words)));
-      entries.push([parseInt(source, 10), words]);
-    });
-
-    return entries;
-  }
-
-  getManyLogs(
-    rowIds: number[],
-    opts: {
-      fields?: LogFieldList;
-    } = {}
-  ): Array<LogRow> {
-    const rowIdsList = `(${rowIds.join(",")})`;
-
-    const stmt = `SELECT ${this.getFields(
-      opts
-    )} FROM logs WHERE ROWID in ${rowIdsList}`;
-
-    return this.db.prepare(stmt).all();
-  }
-
-  getLogs(
-    sourceId: number,
-    opts: {
-      filter?: string | null;
-      beforeRowId?: number | null;
-      limit?: number;
-      fields?: LogFieldList;
-    } = {}
-  ): Array<LogRow> {
-    const { beforeRowId } = opts;
-    const limit = opts.limit || 10;
-    const fields = this.getFields(opts);
-
-    const query = `
-      SELECT ${fields}
-      FROM logs
-      WHERE
-      ${beforeRowId ? `rowid < ${beforeRowId} AND` : ""}
-      ${opts.filter ? `text LIKE '%${opts.filter}%' AND` : ""}
-      source_id = ${sourceId}
-      ORDER BY rowid desc
-      LIMIT  ${limit}
-    `;
-
-    return this.db.prepare(query).all();
-  }
-
-  private getFields(opts: { fields?: LogFieldList }) {
-    return (opts.fields || ["rowid", "source_id", "timestamp", "text"]).join(
-      ","
-    );
-  }
-
-  numLogs(sourceId: number, rowId?: number | null, filter?: string | null) {
-    let sql = `SELECT COUNT(*) as n FROM logs WHERE ${
-      filter ? `text LIKE '%${filter}%' AND` : ""
-    } source_id=${sourceId}`;
-
-    if (rowId) {
-      sql += ` AND rowid < ${rowId}`;
-    }
-
-    return this.db.prepare(sql).get().n;
   }
 
   clearAll() {

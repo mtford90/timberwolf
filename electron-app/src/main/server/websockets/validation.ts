@@ -1,7 +1,7 @@
 import * as Joi from "joi";
 import { DEFAULT_SOURCE } from "./constants";
 
-export interface BaseWebsocketMessage {
+export interface WebsocketMessage {
   timestamp: number;
   text: string;
   source?: "console";
@@ -22,9 +22,7 @@ const websocketMessageSchema = Joi.alternatives(
   Joi.string()
 );
 
-export async function parseMessage(
-  message: string
-): Promise<BaseWebsocketMessage> {
+export async function parseMessage(message: string): Promise<WebsocketMessage> {
   let value;
 
   try {

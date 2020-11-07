@@ -4,7 +4,7 @@ import { LogsPublisher } from "./logs-publisher";
 import { deepMock } from "../../../../tests/util";
 import { Database } from "../database";
 import { WebsocketServer } from "../websockets";
-import { BaseWebsocketMessage } from "../websockets/validation";
+import { WebsocketMessage } from "../websockets/validation";
 import { DEFAULT_SOURCE } from "../websockets/constants";
 
 describe("logs publisher", () => {
@@ -30,7 +30,7 @@ describe("logs publisher", () => {
       }),
     });
     database = new Database();
-    database.insert = jest.fn(database.insert.bind(database));
+    database.logs.insert = jest.fn(database.logs.insert.bind(database));
     database.init();
     websocketEmitter = mitt();
     websocketServer = new WebsocketServer(websocketEmitter);
@@ -78,7 +78,7 @@ describe("logs publisher", () => {
         const line = "testing";
         stdinEmitter.emit("data", Buffer.from(line, "utf8"));
         const sourceId = database.getSourceByName("stdin")?.id;
-        expect(database.insert).toHaveBeenCalledWith(
+        expect(database.logs.insert).toHaveBeenCalledWith(
           expect.arrayContaining([
             expect.objectContaining({ text: "testing", sourceId }),
           ])
@@ -90,7 +90,7 @@ describe("logs publisher", () => {
           const incoming = "my log\nmy second log";
           stdinEmitter.emit("data", Buffer.from(incoming, "utf8"));
           const sourceId = database.getSourceByName("stdin")?.id;
-          expect(database.insert).toHaveBeenCalledWith(
+          expect(database.logs.insert).toHaveBeenCalledWith(
             expect.arrayContaining([
               expect.objectContaining({ text: "my log", sourceId }),
               expect.objectContaining({
@@ -107,7 +107,7 @@ describe("logs publisher", () => {
       describe("when incoming text has no newlines", () => {
         const timestamp = 123;
 
-        const message: BaseWebsocketMessage = {
+        const message: WebsocketMessage = {
           name: "my logger",
           timestamp,
           text: "a log",
@@ -141,7 +141,7 @@ describe("logs publisher", () => {
 
           const sourceId = database.getSourceByName("my logger")?.id;
 
-          expect(database.insert).toHaveBeenCalledWith([
+          expect(database.logs.insert).toHaveBeenCalledWith([
             { text: "a log", sourceId, timestamp },
           ]);
         });
@@ -152,7 +152,7 @@ describe("logs publisher", () => {
 
         const websocketName = "my logger";
 
-        const message: BaseWebsocketMessage = {
+        const message: WebsocketMessage = {
           name: websocketName,
           timestamp,
           text: "a log\nanother log",
@@ -161,7 +161,7 @@ describe("logs publisher", () => {
         it("should split into multiple logs", async () => {
           websocketEmitter.emit("message", message);
           const sourceId = database.getSourceByName(websocketName)?.id;
-          expect(database.insert).toHaveBeenCalledWith(
+          expect(database.logs.insert).toHaveBeenCalledWith(
             expect.arrayContaining([
               expect.objectContaining({
                 text: "a log",
@@ -190,7 +190,7 @@ describe("logs publisher", () => {
 
           websocketEmitter.emit("message", message);
 
-          expect(database.insert).toHaveBeenCalledWith(
+          expect(database.logs.insert).toHaveBeenCalledWith(
             expect.arrayContaining([
               expect.objectContaining({
                 text: "a log",
@@ -213,7 +213,7 @@ describe("logs publisher", () => {
 
           const sourceId = database.getSourceByName("my source")?.id;
 
-          expect(database.insert).toHaveBeenCalledWith(
+          expect(database.logs.insert).toHaveBeenCalledWith(
             expect.arrayContaining([
               expect.objectContaining({
                 text: "a log",
@@ -235,7 +235,7 @@ describe("logs publisher", () => {
 
           const sourceId = database.getSourceByName(DEFAULT_SOURCE)?.id;
 
-          expect(database.insert).toHaveBeenCalledWith(
+          expect(database.logs.insert).toHaveBeenCalledWith(
             expect.arrayContaining([
               expect.objectContaining({
                 text: "a log",

@@ -2,7 +2,7 @@ import { PubSub } from "graphql-subscriptions";
 import { Publisher } from "./publisher";
 import { Database } from "../database";
 import { WebsocketServer } from "../websockets";
-import { BaseWebsocketMessage } from "../websockets/validation";
+import { WebsocketMessage } from "../websockets/validation";
 import { splitText } from "./split";
 import { DEFAULT_SOURCE } from "../websockets/constants";
 
@@ -46,7 +46,7 @@ export class LogsPublisher extends Publisher<"logs"> {
 
     const sourceId = this.database.upsertSource("stdin");
 
-    const dbEntries = this.database.insert(
+    const dbEntries = this.database.logs.insert(
       split.map((s) => ({ sourceId, text: s, timestamp: Date.now() }))
     );
 
@@ -72,7 +72,7 @@ export class LogsPublisher extends Publisher<"logs"> {
     });
   };
 
-  private receiveWebsocketMessage = (message: BaseWebsocketMessage) => {
+  private receiveWebsocketMessage = (message: WebsocketMessage) => {
     const split = splitText(message.text);
     const { name, id } = message;
 
@@ -86,7 +86,7 @@ export class LogsPublisher extends Publisher<"logs"> {
       };
     });
 
-    const rows = this.database.insert(toInsert);
+    const rows = this.database.logs.insert(toInsert);
 
     const source = this.database.getSource(sourceId);
 

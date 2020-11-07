@@ -3,7 +3,7 @@ import { PubSub } from "graphql-subscriptions";
 import { initialiseGQLResolvers, ResolverDependencies } from "./index";
 import { deepMock } from "../../../../tests/util";
 import { Subscription } from "../../../graphql-types.generated";
-import { LogRow } from "../database";
+import { LogRow } from "../database/api/logs";
 
 const resolveInfo = deepMock<GraphQLResolveInfo>({});
 const context = {};
@@ -42,7 +42,10 @@ describe("resolvers", () => {
 
         const deps = deepMock<ResolverDependencies>({
           database: {
-            getLogs: jest.fn(() => mockLines),
+            logs: {
+              getMany: jest.fn(() => mockLines),
+              findMany: jest.fn(() => mockLines),
+            },
             getSource: jest.fn(() => ({
               id: 1,
               name: "stdin",
@@ -78,7 +81,7 @@ describe("resolvers", () => {
         });
 
         it("should call with the correct params", async () => {
-          expect(deps.database.getLogs).toBeCalledWith(1, {
+          expect(deps.database.logs.findMany).toBeCalledWith(1, {
             limit: 10,
             beforeRowId: 10,
           });
@@ -96,7 +99,10 @@ describe("resolvers", () => {
 
         const deps = deepMock<ResolverDependencies>({
           database: {
-            getLogs: jest.fn(() => mockLines),
+            logs: {
+              getMany: jest.fn(() => mockLines),
+              findMany: jest.fn(() => mockLines),
+            },
             getSource: jest.fn(() => ({
               name: "stdin",
               id: 1,
@@ -132,7 +138,7 @@ describe("resolvers", () => {
         });
 
         it("should call with the correct params", async () => {
-          expect(deps.database.getLogs).toBeCalledWith(1, {
+          expect(deps.database.logs.findMany).toBeCalledWith(1, {
             limit: 10,
             filter: "yo",
             beforeRowId: 10,

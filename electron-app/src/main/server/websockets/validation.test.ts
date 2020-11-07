@@ -68,7 +68,7 @@ describe("websocket message validation", () => {
 
       const shared = {
         name: "my tab",
-        id: "my-tab",
+        id: 1,
         timestamp,
         text: "hello",
         source: "console",

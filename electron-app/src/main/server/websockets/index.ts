@@ -3,7 +3,7 @@ import mitt from "mitt";
 
 import * as WebSocket from "ws";
 import { observable, runInAction } from "mobx";
-import { parseMessage, BaseWebsocketMessage } from "./validation";
+import { parseMessage, WebsocketMessage } from "./validation";
 
 type Emitter = ReturnType<typeof mitt>;
 
@@ -54,7 +54,7 @@ export class WebsocketServer {
     });
   }
 
-  on(event: "message", listener: (value: BaseWebsocketMessage) => void): void;
+  on(event: "message", listener: (value: WebsocketMessage) => void): void;
 
   on(event: "error", listener: (value: Error) => void): void;
 

@@ -34,8 +34,8 @@ export function initialiseGQLResolvers({
           throw new Error("No such source");
         }
 
-        return database
-          .getLogs(sourceId, { limit, beforeRowId, filter })
+        return database.logs
+          .findMany(sourceId, { limit, beforeRowId, filter })
           .map((res) => ({
             __typename: "Log" as const,
             timestamp: new Date(res.timestamp),
@@ -53,7 +53,7 @@ export function initialiseGQLResolvers({
           .map((s) => ({ ...s, __typename: "Source" }));
       },
       numLogs(parent, { sourceId, beforeRowId, filter }) {
-        return database.numLogs(sourceId, beforeRowId, filter);
+        return database.logs.count(sourceId, beforeRowId, filter);
       },
       suggest(parent, { sourceId, limit, offset, prefix }) {
         return database.suggest(sourceId, prefix, {
