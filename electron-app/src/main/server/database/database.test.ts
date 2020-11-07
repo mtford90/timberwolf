@@ -11,73 +11,6 @@ describe("database", () => {
     db.clearAll();
   });
 
-  const sourceName = "my source";
-
-  let sourceId: number;
-
-  beforeEach(() => {
-    sourceId = db.createSource(sourceName);
-  });
-
-  describe("suggestions", () => {
-    beforeEach(async () => {
-      await db.logs
-        .insert([
-          {
-            sourceId,
-            text:
-              " DEBUG  [workflow-upload-orchestrator] operation was performed - trying another tick",
-          },
-          {
-            sourceId,
-            text:
-              " DEBUG  [workflow-upload-orchestrator] deleted session binary",
-          },
-          {
-            sourceId,
-            text:
-              " DEBUG  [session-binary-uploader] uploadFile(attempt: 1): 45c8e1b0-6d87-4bc1-ba90-0b2ca1d452bd, (/storage/emulated/0/Android/data/com.xpertsea.mobileapp.staging/files/workflows/a830a970-f987-11e9-b4d8-66674c84890a/ddd18590-6ab7-11e9-94af-3aaca69310c8/8351ec7a-6ab9-11e9-9d14-1aa083c926ce/1581966924343_0999f04a-986e-4740-be21-2b4ffc2dedda/binary_45c8e1b0-6d87-4bc1-ba90-0b2ca1d452bd)",
-          },
-          {
-            sourceId: db.createSource("/Users/mtford/Playground/log/log2.txt"),
-            text:
-              " DEBUG  [workflow-upload-orchestrator] deleted session binary",
-          },
-          {
-            sourceId: db.createSource("/another/path"),
-            text: "xyz",
-          },
-        ])
-        .map((row) => row.rowid);
-    });
-
-    it("should suggest stuff", async () => {
-      const { id } = db.getSourceByName(sourceName)!;
-      const res = db.suggest(id, "up");
-      expect(res).toMatchInlineSnapshot(`
-        Array [
-          "upload",
-          "uploader",
-          "uploadFile",
-          "uploadFile(attempt: 1):",
-        ]
-      `);
-    });
-
-    it("should not include the prefix if fulfilled", async () => {
-      const { id } = db.getSourceByName(sourceName)!;
-      const res = db.suggest(id, "upload");
-      expect(res.includes("upload")).toBeFalsy();
-    });
-
-    it("should not include the prefix if fulfilled, and should be case insensitive", async () => {
-      const { id } = db.getSourceByName(sourceName)!;
-      const res = db.suggest(id, "UPLOAD");
-      console.log("res", res);
-      expect(res.includes("upload")).toBeFalsy();
-    });
-  });
-
   describe("sources", () => {
     describe("createSource", () => {
       describe("when a named source already exists", () => {
@@ -119,14 +52,10 @@ describe("database", () => {
         expect(db.getSources()).toEqual([
           {
             id: 1,
-            name: "my source",
-          },
-          {
-            id: 2,
             name: "named source",
           },
           {
-            id: 3,
+            id: 2,
             name: "another source",
           },
         ]);
@@ -139,7 +68,7 @@ describe("database", () => {
         db.renameSource(id, "renamed");
         const res = db.getSource(id);
         expect(res).toEqual({
-          id: 2,
+          id: 1,
           name: "renamed",
         });
       });

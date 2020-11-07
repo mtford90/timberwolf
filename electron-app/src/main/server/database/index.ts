@@ -3,6 +3,7 @@ import sqlite, { Database as SqliteDatabase } from "better-sqlite3";
 import mitt from "mitt";
 import { generateName } from "../../../common/id-generation";
 import { logsApi, LogsApi } from "./api/logs";
+import { suggestionsApi, SuggestionsAPI } from "./api/suggestions";
 
 type Emitter = ReturnType<typeof mitt>;
 
@@ -18,14 +19,17 @@ export class Database {
 
   public readonly logs: LogsApi;
 
+  public readonly suggestions: SuggestionsAPI;
+
   constructor(path = ":memory:", emitter = mitt()) {
     this.db = sqlite(path);
     this.emitter = emitter;
     this.logs = logsApi(this.db, (entries) => {
       entries.forEach(([source, words]) => {
-        this.insertWords(source, words);
+        this.suggestions.insert(source, words);
       });
     });
+    this.suggestions = suggestionsApi(this.db);
   }
 
   init() {
@@ -124,45 +128,12 @@ export class Database {
     this.emit("delete:source", id);
   }
 
-  private insertWords(sourceId: number, words: string[]) {
-    const upsert = this.db.prepare(
-      `INSERT INTO words(source_id, text, num) VALUES(@sourceId,@text,1)
-    ON CONFLICT(source_id,text) DO UPDATE SET num=num+1;`
-    );
-
-    words.forEach((word) => upsert.run({ sourceId, text: word }));
-  }
-
   clearAll() {
     this.db.exec(require("./clear-all.sql"));
   }
 
   close() {
     this.db.close();
-  }
-
-  suggest(
-    sourceId: number,
-    prefix: string,
-    { limit = 10, offset = 0 }: { limit?: number; offset?: number } = {}
-  ) {
-    // TODO: test the secondary order length(text)
-    const query = this.db.prepare(require("./suggest.sql"));
-
-    const suggestions = query
-      .all({
-        query: `${prefix}%`,
-        sourceId,
-        limit,
-        offset,
-      })
-      .map((r) => r.text);
-
-    if (suggestions[0]?.toLowerCase() === prefix.toLowerCase()) {
-      suggestions.shift();
-    }
-
-    return suggestions;
   }
 
   on(event: "create:source", listener: (id: number) => void): void;
