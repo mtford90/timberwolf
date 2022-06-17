@@ -118,7 +118,7 @@
     "babel-plugin-styled-components": "^1.11.1",
     "copy-webpack-plugin": "^6.0.3",
     "css-loader": "^3.0.0",
-    "electron": "^9.1.2",
+    "electron": "^15.5.5",
     "electron-rebuild": "^1.11.0",
     "fs-extra": "^8.1.0",
     "graphql-tag": "^2.11.0",
